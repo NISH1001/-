@@ -40,6 +40,7 @@ class Setopati(object):
     def Get(self):
         # headers is required for simulating that this get request is from a browser
         self.result = requests.get(self.url, headers = {'User-Agent' : 'Mozilla/5.0'} )
+        #self.result = requests.get(self.url)
         return self.result
 
     def Extract(self):
@@ -52,7 +53,7 @@ class Setopati(object):
                 # beautifulsoup root extractor
                 extractor = BeautifulSoup(self.result.content, "html.parser")
                 newsbox = extractor.find("div", {'id' : 'newsbox'} )
-                news = newsbox.find_all("div")
+                news = newsbox.find_all(["div", "p"])
 
                 news_total = bytes('', 'UTF-8')
 
@@ -65,7 +66,7 @@ class Setopati(object):
                 return news_total
 
         except ManualError as merr:
-            err.Display()
+            merr.Display()
             return ''
         
 
@@ -77,13 +78,17 @@ def main():
         print("folder doesnot exist; hence making it...")
         os.makedirs(folderpath)
 
-    for i in range(500,600):
-        print("have patience while scraping .... ")
+    for i in range(500,4000):
+        print("have patience while scraping .... {}".format(i))
         setopati = Setopati(setopatiurl + str(i) )
         setopati.Get()
         path = folderpath + "/" + str(i)
+        extracted_text = setopati.Extract()
+        if not extracted_text:
+            print("skipping... {}".format(i))
+            continue
         outfile = open(path, "wb")
-        outfile.write(setopati.Extract())
+        outfile.write(extracted_text)
         outfile.close()
 
 
