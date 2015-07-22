@@ -21,6 +21,15 @@ class ScraperError(Exception):
         corresponding meaning if found.
 
     METHODS:
+        Constructor             : takes the url of site, and a True/False flag
+                                    to indicate whether it requires preeti font or not
+        SetPreetiConverterUrl   : we feed in the url whose page converts unicode to
+                                    preeti.
+        GetPreeti               : this visits the webpage and returns the preeti equivalent
+                                    of the unicode fed
+        GetEngWord              : this receives a unicode and calls GetPreeti() to get preeti
+                                    and then calls ScrapEnglishWord() to get the eng equivalent
+        ScrapEnglishWord        : does the real scraping of nepali word(Preeti) fed to it
 
 '''
 
@@ -44,6 +53,7 @@ class NepaliToEnglish(object):
         meaning = self.ScrapEnglishWord(nep_word)
         return meaning
 
+    # not actual translation, only preeti eqv of unicode is returned
     def GetPreeti(self, unicode_str):
         if self.preeti_converter_url is None:
             raise ScraperError("Preeti Converter Url not set!!")
@@ -65,6 +75,7 @@ class NepaliToEnglish(object):
         except Exception:
             raise ScraperError('Problem with finding the Preeti equivalent')
 
+    # actual translation of nepali word to english
     def ScrapEnglishWord(self, nepali_word):
         post_data = {
             'search2nep' : nepali_word
@@ -77,9 +88,9 @@ class NepaliToEnglish(object):
             result_objects = soup.find_all('font')
             # iterate it, the first with class font11 is result
             for x in result_objects:
-                if x.has_key('class') and 'font11' in x.attrs['class']:
+                if x.has_attr('class') and 'font11' in x.attrs['class']:
                     return x.text
-            raise Exception
+            raise ''
         except Exception:
             raise ScraperError('Problem finding the english equivalent of the preeti font Entered')
 
