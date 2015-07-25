@@ -21,5 +21,8 @@ def get_nepali_meaning(word):
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    result = soup.find('font', 'nepfont').get_text()
+    try:
+        result = soup.find('font', 'nepfont').get_text()
+    except:
+        return ''
     return result
