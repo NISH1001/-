@@ -3,7 +3,7 @@
 import re
 import codecs
 import time
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import pickle
 
 """
@@ -17,19 +17,17 @@ attributes:
 class Ngram(object):
 
     def __init__(self):
-        self.unigrams = {}
-        self.bigrams  = {}
-        self.trigrams = {}
+        self.unigrams = OrderedDict()
+        self.bigrams  = OrderedDict()
+        self.trigrams = OrderedDict()
 
     # load all the ngrams dict from text files
     def load_all(self, pickle=False):
-        self.load_bigrams(file_ngrams="ngramdata/2grams.txt")
-        self.load_trigrams(file_ngrams="ngramdata/3grams.txt")
+        self.load_bigrams(file_ngrams="../data/ngrams/2grams.txt")
+        self.load_trigrams(file_ngrams="../data/ngrams/3grams.txt")
 
     # load the bigrams from the desired file
-    def load_bigrams(self, file_ngrams = "ngramdata/2grams.txt"):
-        print(file_ngrams)
-
+    def load_bigrams(self, file_ngrams = "../data/ngrams/2grams.txt"):
         # codecs is used to remove conflicts with encoding schemes
         with codecs.open(file_ngrams, 'rb', encoding='utf-8', errors='ignore' ) as f:
             print("loading bigrams... from {}".format(file_ngrams))
@@ -39,7 +37,7 @@ class Ngram(object):
         print("bigrams loaded successfully... :P")
 
     # load the trigrams
-    def load_trigrams(self, file_ngrams = "ngramdata/3grams.txt"):
+    def load_trigrams(self, file_ngrams = "../data/ngrams/3grams.txt"):
         # codecs is used to remove conflicts with encoding schemes
         with codecs.open(file_ngrams, 'rb', encoding='utf-8', errors='ignore' ) as f:
             print("loading trigrams... from {}".format(file_ngrams))
@@ -49,7 +47,7 @@ class Ngram(object):
         print("trigrams loaded successfully... :P")
 
     # general ngrams loader from pickle file
-    def load_ngrams_pickle(self, pickle_file = "ngramdata/2grams.ng", n=2):
+    def load_ngrams_pickle(self, pickle_file = "../data/ngrams/2grams.ng", n=2):
         print("loading pickle... {}grams".format(n))
         if n<2:
             return False
@@ -60,7 +58,7 @@ class Ngram(object):
         print("loaded pickle...")
 
     # general ngrams saver to a pickle file
-    def save_ngrams_pickle(self, pickle_file = "ngramdata/2grams.ng", n=2):
+    def save_ngrams_pickle(self, pickle_file = "../data/ngrams/2grams.ng", n=2):
         print("saving into pickle...")
         if n<2:
             return False
@@ -102,8 +100,8 @@ def main():
 
 
     """ load from pickles -> very fast """
-    ngram.load_ngrams_pickle(pickle_file="ngramdata/2grams.ng", n=2)
-    ngram.load_ngrams_pickle(pickle_file="ngramdata/3grams.ng", n=3)
+    ngram.load_ngrams_pickle(pickle_file="../data/ngrams/2grams.ng", n=2)
+    ngram.load_ngrams_pickle(pickle_file="../data/ngrams/3grams.ng", n=3)
 
     """ save into pickle """
     #ngram.save_ngrams_pickle(pickle_file="ngramdata/3grams.ng",n=3)
