@@ -11,8 +11,14 @@ class NgramDB(object):
     def close(self):
         self.db.close()
 
+    def create_table_all(self):
+        self.create_table(n=2)
+        self.create_table(n=3)
+        self.create_table(n=4)
+
     """create the table for ngram"""
     def create_table(self, n=2):
+        print("creating {}grams table... :D".format(n))
         cursor = self.db.cursor()
         if n==2:
             cursor.execute("""
@@ -70,6 +76,26 @@ class NgramDB(object):
         else:
             cursor.execute("""
                     INSERT INTO qudgrams(word1, word2, word3, word4, count)
+                    VALUES(?,?,?,?,?)""", data
+                )
+        self.db.commit()
+
+    def insert_many(self, data, n=2):
+        cursor = self.db.cursor()
+    
+        if n==2:
+            cursor.executemany("""
+                    INSERT INTO bigrams(word1, word2, count)
+                    VALUES(?,?,?)""", data
+                )
+        elif n==3:
+            cursor.executemany("""
+                    INSERT INTO trigrams(word1, word2, word3, count)
+                    VALUES(?,?,?,?)""", data
+                )
+        else:
+            cursor.executemany("""
+                    INSERT INTO quadgrams(word1, word2, word3, word4, count)
                     VALUES(?,?,?,?,?)""", data
                 )
         self.db.commit()
