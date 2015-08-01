@@ -13,6 +13,7 @@ __pycache__/
 
 corpora/setopati
 ngram/ngramdata
+data/
 
 # Distribution / packaging
 .Python
