@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#from exceptions import DBHandlerError
+from dictionary import DictDBHandlerError
 import sqlite3
 import os
 
@@ -9,7 +9,7 @@ class DictionaryDBHandler(object):
             # code to check if file exists or not here
             self.database = sqlite3.connect(db_path)
         except Exception:
-            print("dataabase not exist")
+            raise DictDBHandlerError("dataabase not exist")
     
     def close(self):
         self.database.close()
