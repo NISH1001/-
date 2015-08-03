@@ -40,11 +40,11 @@ class RawTranslator(object):
             # Check each ngram whether it is action or not 
             # if yes, convert it and remove the previous one from list
 
-            bigram_translated = [] # stores the translated bigram's index
             for enumerate(item, i) in bigrams:
                 eng_phrase = get_phrase(item)
-                if eng_phrase is not None:
+                if eng_phrase is not None: # means phrase match found
                     re.sub(item, eng_phrase, nepali_text, 1)
+
             # now the biphrases are sustituted, we perform one by one translation of nepali words
             words = nepali_text.split()
             eng_words = []
