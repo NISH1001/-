@@ -6,14 +6,23 @@ import time
 from collections import defaultdict, OrderedDict
 import pickle
 from ngramdb import NgramDB
+import operator
 
 """
 Ngram class: 
--- For now we we upto quadgrams
+-- For now we use upto quadgrams
+-- uses our ngram database handler ngramdb 
+-- sqlite database is used
 
 attributes:
     bigrams,trigrams,quadgrams are all dictionary with key as tuple of words
     eg: bigrams[('happy', 'man)] = somecount
+
+functions:
+    count()                         : get the occurence count of the ngrams sequence
+    probability()                   : get the probability of count -> count/total
+    __generate_probability_table    : private function to generate our probablity table (uses bigrams)
+    generate_sentence               : get the final sentence using the probability table
 """
 class Ngram(object):
 
@@ -135,8 +144,10 @@ class Ngram(object):
     get integer count of the sequence of words
     seq : is a tuple of words
     returns count of occurences of such sequence
+    if total count is needed just set total to True
+        and pass garbage seq
     """
-    def count(self, seq):
+    def count(self, seq, total=False):
         """
         length = len(seq)
         if length>0 and length<=4:
@@ -152,12 +163,11 @@ class Ngram(object):
         else:
             return 0
         """
-
         length = len(seq)
         if length>1 and length<=4:
             # get count object ie sqlite cursor object
             # an iterator is actually returned
-            count_obj = self.ngramdb.count(seq)
+            count_obj = self.ngramdb.count(seq, total)
             # create list of tuples; here only one tuple for the count
             res = [ row for row in count_obj ] 
             if not res:
@@ -165,9 +175,60 @@ class Ngram(object):
 
             counter = res[0]
             return int(counter[0])
+        else:
+            return 0
 
-    def get_probablity(self, seq):
-        pass
+    """ get probability of the ngram sequence"""
+    def probability(self, seq):
+        length = len(seq)
+        count = self.count(seq, total=False)
+        total = self.count(seq, total=True)
+        if not count or not total:
+            return 0.0
+        else:
+            return count/total
+    
+    """ private function: create our 2d table with probability using list comprehension"""
+    def __generate_probability_table(self, seq):
+        n = len(seq)
+        table = [ 
+                    [
+                        0.0
+                        if x==y else 10000*self.probability( tuple([ seq[x],seq[y] ]) ) 
+                        for y in range(n)
+                    ] 
+                for x in range(n) 
+            ]
+        return table
+
+    """ generate the first phase sentence
+        some bugs left like repitition of previous words occur in some cases
+    """
+    def generate_sentence(self, seq):
+        n = len(seq)
+        table = self.__generate_probability_table(seq) # get the table
+
+        # track the row index in the table
+        index_row = 0
+
+        # resultant list
+        res = [seq[0]]
+
+        # main generator
+        for i in range(n-1):
+            # get the word with max probablity ie word(x+1) that is likley to occur after the world(x)
+            index_col, max_prob = max(enumerate(table[index_row]), key=lambda x: x[1])
+
+            res.append(seq[index_col])
+            #table[index_col] = [0.0]*n
+            # set the column prob negative -> no need of previous words for upcoming words
+            for i in range(n):
+                table[i][index_row] = -1
+
+            # new index row 
+            index_row = index_col
+        return res
+
 
 def main():
     ngram = Ngram()
@@ -194,13 +255,12 @@ def main():
             break
         seq = seq.split()
         seq = tuple(seq)
-        print("count for the seqence: {}".format(ngram.count(seq)) )
-        #print(ngram.count(seq))
-
-    #ngram.insert_into_db()
+        #print("count for the seqence: {}".format(ngram.count(seq, total=False)) )
+        #print("prob for the seqence: {}".format(ngram.probability(seq)) )
+        sentence = ngram.generate_sentence(seq)
+        print(sentence)
 
     ngram.close_ngramdb()
 
 if __name__=="__main__":
     main()
-
