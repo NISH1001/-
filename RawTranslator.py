@@ -30,6 +30,7 @@ class RawTranslator(object):
     def __init__(self, db):
         self.dict_handler = DictionaryDBHandler(db)
         self.tense_structures = [] # initialize with the tenses
+        # NOTE: the following are not sure to be in list form, just for abstraction
         self.simple_present = []
         self.simple_past = []
         self.simple_future = []
@@ -51,12 +52,10 @@ class RawTranslator(object):
             # In the first phase, we check for actions involving biphrases
             # After that, we check for single ones
 
-            '''
             for i, item in enumerate(bigrams):
                 eng_phrase = self.get_action(item) # checks bigram
                 if eng_phrase is not None: # means phrase match found
                     re.sub(item, eng_phrase, nepali_text, 1)
-            '''
 
             # now the biphrases are sustituted, we perform one by one translation of nepali words
             words = nepali_text.split()
@@ -117,8 +116,6 @@ class RawTranslator(object):
                     verb = extract_verb(simple_result.group(1))
                     # Since only last part is action, send the first part as it is
                     return nepali_phrase.split()[0] + '' # return the correct tense of the verb
-                        
-
         pass
         
 
