@@ -115,7 +115,8 @@ class RawTranslator(object):
                         return None # The phrase is not an action
                         raise Exception('either phrase is wrong, or internal error while parsing :', nepali_phrase)
                     verb = extract_verb(simple_result.group(1))
-                    return '' # return the correct tense of the verb
+                    # Since only last part is action, send the first part as it is
+                    return nepali_phrase.split()[0] + '' # return the correct tense of the verb
                         
 
         pass
