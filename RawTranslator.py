@@ -53,8 +53,9 @@ class RawTranslator(object):
             # After that, we check for single ones
 
             for i, item in enumerate(bigrams):
-                eng_phrase = self.get_action(item) # checks bigram
+                eng_phrase = self.get_action(item) # checks bigram if it is action
                 if eng_phrase is not None: # means phrase match found
+                    # replace the phrase with english equivalent
                     re.sub(item, eng_phrase, nepali_text, 1)
 
             # now the biphrases are sustituted, we perform one by one translation of nepali words
@@ -68,8 +69,10 @@ class RawTranslator(object):
                             )
                         ) # CNF separated by ^^
 
+                    '''
                     if eng_word=='': # which is the case when no meaning found in dict
                         eng_word==get_action(x) # checks unigram
+                    '''
 
                     eng_words.append(eng_word)
                 else:
@@ -99,13 +102,13 @@ class RawTranslator(object):
                         for each in non_simple:
                             non_simple_result = re.search('(\S)'+structure, first_part)
                             
-                            if non_simple_result is None:
-                                raise Exception('either phrase is wrong, or internal error while parsing :', nepali_phrase)
+                            if non_simple_result is None: #case: म घर छु।
+                                return first_part + self.get_tense(simiple_result) 
 
                             # Here, we have the verb root in non_simple_root, so extract verb
-                            verb = extract_verb(non_simple_result.group(1))
+                            verb = self.extract_verb(non_simple_result.group(1))
 
-                            return '' # here return the correct tense of the verb
+                            return self.get_tense(verb) # here return the correct tense of the verb
 
                 # Else if the simple_result returned none, which means, we check only the partial part
                 else:
@@ -113,11 +116,9 @@ class RawTranslator(object):
                     if simple_result is None:
                         return None # The phrase is not an action
                         raise Exception('either phrase is wrong, or internal error while parsing :', nepali_phrase)
-                    verb = extract_verb(simple_result.group(1))
+                    verb = self.extract_verb(simple_result.group(1))
                     # Since only last part is action, send the first part as it is
-                    return nepali_phrase.split()[0] + '' # return the correct tense of the verb
-        pass
-        
+                    return nepali_phrase.split()[0] + self.get_tense(verb) # return the correct tense of the verb
 
 
 def main():
