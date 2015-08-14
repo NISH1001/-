@@ -5,7 +5,7 @@ import codecs
 import time
 from collections import defaultdict, OrderedDict
 import pickle
-from ngramdb import NgramDB
+from .ngramdb import NgramDB
 import operator
 
 """
@@ -26,14 +26,14 @@ functions:
 """
 class Ngram(object):
 
-    def __init__(self):
+    def __init__(self, db_name="../data/ngrams/ngrams.db"):
         self.unigrams = OrderedDict()
         self.bigrams  = OrderedDict()
         self.trigrams = OrderedDict()
         self.quadgrams = OrderedDict()
 
         # this is ngrams database handler
-        self.ngramdb = NgramDB()
+        self.ngramdb = NgramDB(db_name)
         #self.ngramdb.create_table_all()
 
     # load all the ngrams dict from text files
