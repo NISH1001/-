@@ -5,8 +5,12 @@ import codecs
 import time
 from collections import defaultdict, OrderedDict
 import pickle
-from .ngramdb import NgramDB
 import operator
+
+try:
+    from .ngramdb import NgramDB
+except:
+    from ngramdb import NgramDB
 
 """
 Ngram class: 
@@ -201,6 +205,9 @@ class Ngram(object):
             ]
         return table
 
+    def count_many(self, seq):
+        pass
+
     """ generate the first phase sentence
         some bugs left like repitition of previous words occur in some cases
     """
@@ -264,3 +271,7 @@ def main():
 
 if __name__=="__main__":
     main()
+
+
+
+

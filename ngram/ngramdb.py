@@ -132,6 +132,17 @@ class NgramDB(object):
                     WHERE word1=? and word2=? and word3=? and word4=?
                 """, word_seq)
 
+    def count_many(self, ng_list):
+        cursor = self.db.cursor()
+        '''
+        for ng in ng_list:
+            cursor.execute("""
+                    SELECT count FROM bigrams
+                    WHERE word1=? and word2=?
+                """, ng)
+            rows = cursor.fetchall()
+        '''
+        
 
 def main():
     ngramdb = NgramDB("../data/ngrams/ngrams.db")
