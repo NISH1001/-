@@ -6,6 +6,7 @@ class NgramDB(object):
     def __init__(self, db_name="../data/ngrams/ngrams.db"):
         self.db_name = db_name
         self.db = sqlite3.connect(db_name)
+        self.list_str = ['unigrams', 'bigrams', 'trigrams', 'quadgrams']
         #self.db = sqlite3.connect(":memory:")
 
     def close(self):
@@ -100,10 +101,20 @@ class NgramDB(object):
                 )
         self.db.commit()
     
-    """ return the count query -> list of tuples it is """
-    def count(self, word_seq):
+    """ return the count query -> list of tuples it is
+        if total=True -> total ngram count is returned instead of 
+            just a specifirc ngram
+    """
+    def count(self, word_seq, total=False):
         n = len(word_seq)
         cursor = self.db.cursor()
+
+        if total:
+            cnt = tuple(['count_'+self.list_str[n-1]])
+            return cursor.execute("""
+                    SELECT value FROM aggregate
+                    WHERE name=?
+                """, cnt )
     
         if n==2:
             return cursor.execute("""
@@ -121,6 +132,17 @@ class NgramDB(object):
                     WHERE word1=? and word2=? and word3=? and word4=?
                 """, word_seq)
 
+    def count_many(self, ng_list):
+        cursor = self.db.cursor()
+        '''
+        for ng in ng_list:
+            cursor.execute("""
+                    SELECT count FROM bigrams
+                    WHERE word1=? and word2=?
+                """, ng)
+            rows = cursor.fetchall()
+        '''
+        
 
 def main():
     ngramdb = NgramDB("../data/ngrams/ngrams.db")
