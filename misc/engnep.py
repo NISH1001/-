@@ -49,8 +49,17 @@ def EnglishToNepali(eng):
             list_nep = splitted[1].split(',')
             list_nep = [ nep.strip() for nep in list_nep ]
 
-            list_verb = [ nep for nep in list_nep if check_verb(nep) ]
-            list_non_verb = [ nep for nep in list_nep if nep not in list_verb ]
+            #list_verb = [ nep for nep in list_nep if check_verb(nep) ]
+            #list_non_verb = [ nep for nep in list_nep if nep not in list_verb ]
+            list_verb = []
+            list_non_verb = []
+
+            for nep in list_nep:
+                if check_verb(nep):
+                    list_verb.append(nep)
+                else:
+                    list_non_verb.append(nep)
+
             res = {'verb' : list_verb, 'non-verb' : list_non_verb}
             return res
 
