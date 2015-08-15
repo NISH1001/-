@@ -197,8 +197,8 @@ class Ngram(object):
         n = len(seq)
         table = [ 
                     [
-                        0.0
-                        if x==y else 10000*self.probability( tuple([ seq[x],seq[y] ]) ) 
+                        -1.0
+                        if x==y else 1000*self.probability( tuple([ seq[x],seq[y] ]) ) 
                         for y in range(n)
                     ] 
                 for x in range(n) 
