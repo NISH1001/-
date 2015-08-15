@@ -32,9 +32,9 @@ class RawTranslator(object):
     
     def translate(self, nepali_text):
         try:
-            # The whole portion of code below may be required to
             #   be modified later in other phases
 
+            # The whole portion of code below may be required to
             words = nepali_text.split()
             bigrams = [' '.join(words[x:x+2]) for x in range(len(words)-1)]
 
