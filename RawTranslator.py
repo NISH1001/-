@@ -132,20 +132,53 @@ class RawTranslator(object):
                         return nepali_phrase.split()[0] + self.get_tense(root_verb, simple_tense) # return the correct tense of the verb
         return None
 
+    def extract_verb(self, nepali_root):
+        pass
     def get_tense(self, root_verb, simple_tense, non_simple_tense=None, singular=False):
         if non_simple_tense=='continuous':
             if simple_tense=='present':
-                return self.verb_tems[root_verb]
+                if singular: return "is "+self.verb_tenses[root_verb]['continuous']
+                else: return "are "+self.verb_tenses[root_verb]['continuous']
             if simple_tense=='past':
+                if singular: return "was "+self.verb_tenses[root_verb]['continuous']
+                else: return "were "+self.verb_tenses[root_verb]['continuous']
+            if simple_tense=='future':
+                return "will be "+self.verb_tenses[root_verb]['continuous']
 
+        elif non_simple_tense=='perfect':
+            if simple_tense=='present':
+                if singular: return "has "+self.verb_tenses[root_verb]['perfect']
+                else: return "have "+self.verb_tenses[root_verb]['perfect']
+            if simple_tense=='past':
+                return "had "+self.verb_tenses[root_verb]['perfect']
+            if simple_tense=='future':
+                return "will have "+self.verb_tenses[root_verb]['perfect']
+
+        elif non_simple_tense=='perfect continuous':
+            if simple_tense=='present':
+                if singular: return "has been "+self.verb_tenses[root_verb]['continuous']
+                else: return "have been "+self.verb_tenses[root_verb]['continuous']
+            if simple_tense=='past':
+                return "had been "+self.verb_tenses[root_verb]['continuous']
+            if simple_tense=='future':
+                return "will have been "+self.verb_tenses[root_verb]['continuous']
+        else:
+            if simple_tense=="present":
+                if singular: return self.verb_tenses[root_verb]['singular']
+                else: return root_verb
+            if simple_tense=='past':
+                return self.verb_tenses[root_verb]['past']
+            if simple_tense=='future':
+                return "will " + root_verb
 
 
 def main():
     translator = RawTranslator("dictionary/dictionary.db")
-    n = input('enter sentence in nepali')
+    n = input('enter verb ')
     while(n!='==='):
-        translator.translate(n)
-        n = input('enter sentence in nepali')
+        print(translator.get_tense(n, "past", "perfect continuous"))
+        print(translator.get_tense(n, "future", "perfect continuous"))
+        n = input('enter verb ')
     print("end")
 
 
