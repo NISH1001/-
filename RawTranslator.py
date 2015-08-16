@@ -1,3 +1,4 @@
+import json
 import re
 from dictionary.DictionaryDBHandler import DictionaryDBHandler
 
@@ -29,16 +30,14 @@ class RawTranslator(object):
 
     def __init__(self, db):
         self.dict_handler = DictionaryDBHandler(db)
-        self.tense_structures = [] # initialize with the tenses
-        # NOTE: the following are not sure to be in list form, just for abstraction
-        self.simple_present = []
-        self.simple_past = []
-        self.simple_future = []
-        self.simple_tenses = [self.simple_present, self.simple_past, self.simple_future]
-        self.continuous = []
-        self.perfect = []
-        self.perfect_continuous = []
-        self.non_simple_tenses = [self.continuous, self.perfect, self.perfect_continuous]
+
+        verbs = open("data/verb_tenses.json", 'r')
+        verbs = verbs.read()
+        self.verb_tenses = json.loads(verbs)
+
+        rules = open("data/Rule.json", "r")
+        rules = rules.read()
+        self.tense_structures = json.loads(rules)
     
     def translate(self, nepali_text):
         try:
@@ -47,6 +46,7 @@ class RawTranslator(object):
 
             words = nepali_text.split()
             bigrams = [' '.join(words[x:x+2]) for x in range(len(words)-1)]
+            print(bigrams)
 
             # Check each ngram whether it is action or not 
             # In the first phase, we check for actions involving biphrases
@@ -54,10 +54,11 @@ class RawTranslator(object):
 
             for i, item in enumerate(bigrams):
                 eng_phrase = self.get_action(item) # checks bigram if it is action
+                continue
                 if eng_phrase is not None: # means phrase match found
                     # replace the phrase with english equivalent
                     re.sub(item, eng_phrase, nepali_text, 1)
-
+            return 
             # now the biphrases are sustituted, we perform one by one translation of nepali words
             words = nepali_text.split()
             eng_words = []
@@ -84,46 +85,68 @@ class RawTranslator(object):
             print('error occured')
             assert False
 
+
     def get_action(self, nepali_phrase): # nepali phrase is bigram/unigram for now
         # Check if the bigram matches any form in our tenses    
-        for simple_tense in self.simple_tenses:
-            for structure in simple_tense:
+        for simple_tense in self.tense_structures["Simple"]:
+            for structure in self.tense_structures["Simple"][simple_tense]:
 
                 # Check if the phrase's second part matches fully with the structure
                 # If so it is not only simple, check first part too
                 simple_result = re.search(' ('+structure+')', nepali_phrase)
 
                 if simple_result is not None:
+
+                    print("it is non simple tense...")
+                    #print(simple_tense, structure, simple_result.group(0))
+
                     # Search for match in the first part of the phrase
                     first_part = nepali_phrase.split()[0]
                     # Now check in continuous, perfect and perfect continuous lists
-                    for non_simple in self.non_simple_tenses:
+                    for non_simple_tense in self.tense_structures["NonSimple"]:
                         # Here, full part won't match, so check partial
-                        for each in non_simple:
-                            non_simple_result = re.search('(\S)'+structure, first_part)
-                            
-                            if non_simple_result is None: #case: म घर छु।
-                                return first_part + self.get_tense(simiple_result) 
+                        for each in self.tense_structures["NonSimple"][non_simple_tense]:
+                            non_simple_result = re.search('(\S+)'+each, first_part)
+                            if non_simple_result is not None: 
+                                print("bibek", non_simple_tense, each, non_simple_result.group(1))
 
-                            # Here, we have the verb root in non_simple_root, so extract verb
-                            verb = self.extract_verb(non_simple_result.group(1))
+                                # Here, we have the verb root in non_simple_root, so extract verb
+                                root_verb = self.extract_verb(non_simple_result.group(1))
 
-                            return self.get_tense(verb) # here return the correct tense of the verb
+                                return self.get_tense(root_verb, simple_tense, non_simple_tense) # here return the correct tense of the verb
+
+                    # it means no non-simple structure found like in म घर छु।
+                    # return the first part and tense of second part e.g return 'घर am'
+                    return first_part + self.get_tense(simiple_result, simple_tense) 
 
                 # Else if the simple_result returned none, which means, we check only the partial part
                 else:
-                    simple_result = re.search(' (\S)'+structure, nepali_phrase)
-                    if simple_result is None:
-                        return None # The phrase is not an action
-                        raise Exception('either phrase is wrong, or internal error while parsing :', nepali_phrase)
-                    verb = self.extract_verb(simple_result.group(1))
-                    # Since only last part is action, send the first part as it is
-                    return nepali_phrase.split()[0] + self.get_tense(verb) # return the correct tense of the verb
+                    simple_result = re.search(' (\S+)'+structure, nepali_phrase)
+                    if simple_result is not None:
+                        print("bibek...")
+                        print(simple_tense, structure, simple_result.group(1))
+
+                        return
+                        root_verb = self.extract_verb(simple_result.group(1))
+                        # Since only last part is action, send the first part as it is
+                        return nepali_phrase.split()[0] + self.get_tense(root_verb, simple_tense) # return the correct tense of the verb
+        return None
+
+    def get_tense(self, root_verb, simple_tense, non_simple_tense=None, singular=False):
+        if non_simple_tense=='continuous':
+            if simple_tense=='present':
+                return self.verb_tems[root_verb]
+            if simple_tense=='past':
+
 
 
 def main():
     translator = RawTranslator("dictionary/dictionary.db")
-    print(translator.translate("खाना राम्रो"))
+    n = input('enter sentence in nepali')
+    while(n!='==='):
+        translator.translate(n)
+        n = input('enter sentence in nepali')
+    print("end")
 
 
 if __name__=='__main__':
