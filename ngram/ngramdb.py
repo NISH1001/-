@@ -108,29 +108,39 @@ class NgramDB(object):
     def count(self, word_seq, total=False):
         n = len(word_seq)
         cursor = self.db.cursor()
+        res = None
 
         if total:
             cnt = tuple(['count_'+self.list_str[n-1]])
-            return cursor.execute("""
+            res = cursor.execute("""
                     SELECT value FROM aggregate
                     WHERE name=?
                 """, cnt )
     
         if n==2:
-            return cursor.execute("""
+            res = cursor.execute("""
                     SELECT count FROM bigrams
                     WHERE word1=? and word2=?
                 """, word_seq)
         elif n==3:
-            return cursor.execute("""
+            res = cursor.execute("""
                     SELECT count FROM trigrams
                     WHERE word1=? and word2=? and word3=?
                 """, word_seq)
-        else:
-            return cursor.execute("""
+        elif n==4:
+            res = cursor.execute("""
                     SELECT count FROM quadgrams
                     WHERE word1=? and word2=? and word3=? and word4=?
                 """, word_seq)
+        else:
+            return 0
+
+        # create list of tuples; here only one tuple for the count
+        res = [ row for row in res] 
+        if not res:
+            return 0
+        counter = res[0]
+        return int(counter[0])
 
     def count_many(self, ng_list):
         cursor = self.db.cursor()
