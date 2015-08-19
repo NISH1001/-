@@ -7,6 +7,7 @@ __pycache__/
 # temporary text files and html files
 *.txt
 *.html
+*.swp
 
 # C extensions
 *.so

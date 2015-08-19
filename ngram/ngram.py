@@ -198,7 +198,7 @@ class Ngram(object):
         table = [ 
                     [
                         -1.0
-                        if x==y else 1000*self.probability( tuple([ seq[x],seq[y] ]) ) 
+                        if x==y else 1*self.probability( tuple([ seq[x],seq[y] ]) ) 
                         for y in range(n)
                     ] 
                 for x in range(n) 
@@ -209,7 +209,6 @@ class Ngram(object):
         pass
 
     """ generate the first phase sentence
-        some bugs left like repitition of previous words occur in some cases
     """
     def generate_sentence(self, seq):
         n = len(seq)
