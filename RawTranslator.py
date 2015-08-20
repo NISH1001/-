@@ -136,7 +136,7 @@ class RawTranslator(object):
         # Since non simple results not found, check simple only
         for simple_tense in self.tense_structures["Simple"]:
             for structure in self.tense_structures["Simple"][simple_tense]:
-                simple_result = re.search('(.+)'+structure+'$', nepali_phrase)
+                simple_result = re.search('(\S+)'+structure+'$', nepali_phrase)
                 if simple_result is not None:
 
                     #print("bibek...")
