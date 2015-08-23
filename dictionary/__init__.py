@@ -1,3 +1,3 @@
 #!/usr/bin/env python3
 
-from .DictionaryDBHandler import DictionaryDBHandler
+from dictionary.DictionaryDBHandler import DictionaryDBHandler
