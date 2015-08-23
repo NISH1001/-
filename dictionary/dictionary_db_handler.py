@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from dictionary import DictDBHandlerError
+from dictionary.dict_db_handler_error import DictDBHandlerError
 import sqlite3
 import os
 

@@ -1,6 +1,6 @@
 import json
 import re
-from dictionary.DictionaryDBHandler import DictionaryDBHandler
+from dictionary.dictionary_db_handler import DictionaryDBHandler
 
 class RawTranslatorError(Exception):
     def __init__(self, args):
@@ -57,7 +57,7 @@ class RawTranslator(object):
         nepeng = nepeng.read()
         self.nep_eng = json.loads(nepeng)
     
-
+    
     def translate(self, nepali_text):
         try:
             # The whole portion of code below may be required to
@@ -65,7 +65,7 @@ class RawTranslator(object):
 
             words = nepali_text.split()
             bigrams = [' '.join(words[x:x+2]) for x in range(len(words)-1)]
-            trigrams = [' '.join(words[x:x+3]) for x in range(len(words-2)] # not used now
+            #trigrams = [' '.join(words[x:x+3]) for x in range(len(words-2)] # not used now
 
             # Check each ngram whether it is action or not 
             # In the first phase, we check for actions involving biphrases
@@ -102,6 +102,16 @@ class RawTranslator(object):
         except Exception as e:
             print(''.join(e.args))
 
+    def translate_ngram(self, nepali_text, n=2):
+        words = nepali_text.split()
+        ngrams = [' '.join(words[x:x+n]) for x in range(len(words)-n+1)]
+
+        for i, item in enumerate(ngrams):
+            eng_phrase = self.get_action(item)
+            if eng_phrase is not None:
+                nepali_text = re.sub(item, eng_phrase, nepali_text, 1)
+        # Since the possible ngrams are substituted, we now do      
+
 
     def get_action(self, nepali_phrase): # nepali phrase is bigram/unigram for now
         # Check if the bigram matches any form in our tenses    
@@ -119,6 +129,7 @@ class RawTranslator(object):
 
                     # Search for match in the first part of the phrase
                     first_part = nepali_phrase.split()[0]
+                    remaining_part = re.sub(' ' +structure+'$', '', nepali_phrase)
                     # Now check in continuous, perfect and perfect continuous lists
                     for non_simple_tense in self.tense_structures["NonSimple"]:
                         # Here, full part won't match, so check partial
