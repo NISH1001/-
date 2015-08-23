@@ -57,6 +57,7 @@ class RawTranslator(object):
         nepeng = nepeng.read()
         self.nep_eng = json.loads(nepeng)
     
+
     def translate(self, nepali_text):
         try:
             # The whole portion of code below may be required to
@@ -64,6 +65,7 @@ class RawTranslator(object):
 
             words = nepali_text.split()
             bigrams = [' '.join(words[x:x+2]) for x in range(len(words)-1)]
+            trigrams = [' '.join(words[x:x+3]) for x in range(len(words-2)] # not used now
 
             # Check each ngram whether it is action or not 
             # In the first phase, we check for actions involving biphrases
@@ -100,13 +102,14 @@ class RawTranslator(object):
         except Exception as e:
             print(''.join(e.args))
 
+
     def get_action(self, nepali_phrase): # nepali phrase is bigram/unigram for now
         # Check if the bigram matches any form in our tenses    
         for simple_tense in self.tense_structures["Simple"]:
             for structure in self.tense_structures["Simple"][simple_tense]:
 
-                # Check if the phrase's second part matches fully with the structure
-                # If so it is not only simple, check first part too
+                # Check if the phrase's last part matches fully with the structure
+                # If so it is not only simple, check remaining first part too
                 simple_result = re.search(' ('+structure+')', nepali_phrase)
 
                 if simple_result is not None:
@@ -139,8 +142,8 @@ class RawTranslator(object):
                 simple_result = re.search('(\S+)'+structure+'$', nepali_phrase)
                 if simple_result is not None:
 
-                    #print("bibek...")
                     #print(simple_tense, structure, simple_result.group(1))
+
                     # check for two possibilities: single word nep_verb
                     #                              double word nep_verb
                     root_verb = self.get_eng_verb(simple_result.group(1)) # double_word
