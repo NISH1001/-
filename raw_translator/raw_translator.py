@@ -71,7 +71,7 @@ class RawTranslator(object):
 
             for i, item in enumerate(bigrams):
                 eng_phrase = self.get_action(item) # checks bigram if it is action
-                print("english phrase: ",eng_phrase)
+                #print("english phrase: ",eng_phrase)
 
                 if eng_phrase is not None: # means phrase match found
                     # replace the phrase with english equivalent
@@ -222,7 +222,7 @@ class RawTranslator(object):
 
 
 def main():
-    translator = RawTranslator("dictionary/dictionary.db")
+    translator = RawTranslator("data/dictionary.db")
     n = input('enter nepali sentence ')
     while(n!='==='):
         print(translator.translate(n))

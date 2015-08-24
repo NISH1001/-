@@ -3,8 +3,12 @@ from raw_translator.raw_translator import RawTranslator
 
 
 translator = RawTranslator("data/dictionary.db")
-print(translator.translate(input('nepali_text')))
-'''
+print("Enter === to terminate...")
+ip = input("Enter the nepali text: ")
+while(ip!='==='):
+    print(translator.translate(ip))
+    ip = input("Enter the nepali text: ")
+"""
 #!/usr/bin/env python3
 
 # load our packages
@@ -34,4 +38,4 @@ def main():
 
 if __name__=="__main__":
     main()
-'''
+"""
