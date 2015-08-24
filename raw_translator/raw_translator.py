@@ -72,6 +72,7 @@ class RawTranslator(object):
 
             for i, item in enumerate(bigrams):
                 eng_phrase = self.get_action(item) # checks bigram if it is action
+                print("english phrase: ",eng_phrase)
 
                 if eng_phrase is not None: # means phrase match found
                     # replace the phrase with english equivalent
@@ -82,7 +83,7 @@ class RawTranslator(object):
             eng_words = []
 
             for x in words:
-                if is_nepali(x): # **** 1 is just for debugging
+                if is_nepali(x): 
                     eng_word = '^^'.join(list(
                             map(lambda x: x.lower(), self.dict_handler.get_english(x))
                             )
@@ -150,10 +151,9 @@ class RawTranslator(object):
         # Since non simple results not found, check simple only
         for simple_tense in self.tense_structures["Simple"]:
             for structure in self.tense_structures["Simple"][simple_tense]:
-                simple_result = re.search('(\S+)'+structure+'$', nepali_phrase)
+                simple_result = re.search('(.+)'+structure+'$', nepali_phrase)
                 if simple_result is not None:
 
-                    #print(simple_tense, structure, simple_result.group(1))
 
                     # check for two possibilities: single word nep_verb
                     #                              double word nep_verb
@@ -161,7 +161,7 @@ class RawTranslator(object):
                     if root_verb is not None:
                         return self.get_tense(root_verb, simple_tense) # return the correct tense of the verb
                     else:
-                        root_verb = self.get_eng_verb(simple_result.group(1).split()[1]) # single word verb
+                        root_verb = self.get_eng_verb(simple_result.group(1).split()[-1]) # single word verb
                         if root_verb is not None:
                             return nepali_phrase.split()[0]+ ' '+self.get_tense(root_verb, simple_tense)
         return None
