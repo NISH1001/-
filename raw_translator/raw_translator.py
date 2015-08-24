@@ -65,7 +65,6 @@ class RawTranslator(object):
 
             words = nepali_text.split()
             bigrams = [' '.join(words[x:x+2]) for x in range(len(words)-1)]
-            #trigrams = [' '.join(words[x:x+3]) for x in range(len(words-2)] # not used now
 
             # Check each ngram whether it is action or not 
             # In the first phase, we check for actions involving biphrases

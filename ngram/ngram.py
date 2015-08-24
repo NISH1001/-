@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
 import re
-import codecs
 import time
 from collections import defaultdict, OrderedDict
-import pickle
-import operator
 
 try:
     from .ngramdb import NgramDB
@@ -71,6 +68,12 @@ class Ngram(object):
             return 0.0
         else:
             return count/total
+
+    def probability_sentence(self, seq):
+        prob = 1
+        for x in range( len(seq) -1):
+            prob *= self.probability( (seq[x], seq[x+1],) )
+        return prob
     
     """ private function: create our 2d table with probability using list comprehension"""
     def __generate_probability_table(self, seq):
@@ -128,6 +131,7 @@ def main():
         seq = tuple(seq.split())
         sentence = ngram.generate_sentence(seq)
         print(sentence)
+        print(ngram.probability_sentence( tuple(sentence)))
 
     ngram.close_ngramdb()
 
