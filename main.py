@@ -1,11 +1,10 @@
-<<<<<<< HEAD
 
 from raw_translator.raw_translator import RawTranslator
 
 
 translator = RawTranslator("data/dictionary.db")
 print(translator.translate(input('nepali_text')))
-=======
+'''
 #!/usr/bin/env python3
 
 # load our packages
@@ -35,5 +34,4 @@ def main():
 
 if __name__=="__main__":
     main()
-
->>>>>>> db07d334fb0ce5c4b8330161a087b83ee9500cc5
+'''
