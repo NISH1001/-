@@ -1,2 +1,3 @@
 # Anuwadak
-Just a nepali to english text translator :)
+An Awesome Nepali to English Translator.
+Will get more awesome in the future.
