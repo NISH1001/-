@@ -94,8 +94,6 @@ class Ngram(object):
     def generate_sentence(self, seq):
         n = len(seq)
         table = self.__generate_probability_table(seq) # get the table
-        for row in table:
-            print(row)
 
         # track the row index in the table
         index_row = 0
@@ -115,7 +113,7 @@ class Ngram(object):
 
             # new index row 
             index_row = index_col
-        return res
+        return tuple(res)
 
     def generate_sentence2(self, seq):
         n = len(seq)
@@ -150,8 +148,27 @@ class Ngram(object):
         word = seq[0]
         print(entered)
 
+    def cnf_separator(self, cnf):
+        # contains the cnf separated raw sentences(seq/tuple)
+        raw = []
 
+        # recursive cnf separator
+        def cnf_recur(pre, post):
+            if len(post) == 1:
+                for x in post[0]:
+                    raw.append( tuple((pre + " " + x).split()) )
+            else:
+                for x in post[0]:
+                    cnf_recur(pre+" "+x, post[1:])
 
+        splitted = cnf.split()
+        separated = [ tuple(word.split('^^')) for word in splitted]
+        if not separated:
+            return []
+        cnf_recur("", separated)
+
+        final = [ self.generate_sentence(seq) for seq in raw ]
+        return final
 
 def main():
     start = time.time()
@@ -165,11 +182,7 @@ def main():
             continue
         if seq=="exit":
             break
-        seq = tuple(seq.split())
-        sentence = ngram.generate_sentence2(seq)
-        print(sentence)
-        print(ngram.count(seq))
-        print(ngram.probability(seq))
+        print(ngram.cnf_separator(seq))
 
     ngram.close_ngramdb()
 
