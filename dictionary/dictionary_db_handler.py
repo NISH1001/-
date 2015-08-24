@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-from dictionary import DictDBHandlerError
+from dictionary.dict_db_handler_error import DictDBHandlerError
 import sqlite3
 import os
 
 class DictionaryDBHandler(object):
-    def __init__(self, db_path="data/dictionary.db"):
+    def __init__(self, db_path="dictionary.db"):
         try:
             # code to check if file exists or not here
             self.database = sqlite3.connect(db_path)
