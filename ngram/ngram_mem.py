@@ -28,11 +28,11 @@ class NgramMem(object):
         if not pickle:
             self.load_bigrams(file_ngrams=self.data_path+"2grams.txt")
             self.load_trigrams(file_ngrams=self.data_path+"3grams.txt")
-            self.load_quadgrams(file_ngrams=self.data_path+"4grams.txt")
+            #self.load_quadgrams(file_ngrams=self.data_path+"4grams.txt")
         else:
             self.load_ngrams_pickle(pickle_file=self.data_path+"2grams.ng", n=2)
             self.load_ngrams_pickle(pickle_file=self.data_path+"3grams.ng", n=3)
-            self.load_ngrams_pickle(pickle_file=self.data_path+"4grams.ng", n=4)
+            #self.load_ngrams_pickle(pickle_file=self.data_path+"4grams.ng", n=4)
 
     # load the bigrams from the desired file
     def load_bigrams(self, file_ngrams = "../data/ngrams/2grams.txt"):

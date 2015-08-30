@@ -159,7 +159,7 @@ def main():
 
     ngramdb.create_table(n=2)
     ngramdb.create_table(n=3)
-    ngramdb.create_table(n=4)
+    #ngramdb.create_table(n=4)
 
     #ngramdb.insert( ("i", "am", "nishan"), 444)
 

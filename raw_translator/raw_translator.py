@@ -187,7 +187,7 @@ class RawTranslator(object):
         if non_simple_tense=='continuous':
             if simple_tense=='present':
                 if singular: return "is "+self.verb_tenses[root_verb]['continuous']
-                else: return "are "+self.verb_tenses[root_verb]['continuous']
+                else: return "are^^am "+self.verb_tenses[root_verb]['continuous']
             if simple_tense=='past':
                 if singular: return "was "+self.verb_tenses[root_verb]['continuous']
                 else: return "were "+self.verb_tenses[root_verb]['continuous']

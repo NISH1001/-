@@ -3,6 +3,7 @@
 import re
 import time
 from collections import defaultdict, OrderedDict
+import operator
 
 try:
     from .ngramdb import NgramDB
@@ -81,7 +82,7 @@ class Ngram(object):
         table = [ 
                     [
                         -1.0
-                        if x==y else 1*self.probability( tuple([ seq[x],seq[y] ]) ) 
+                        if x==y or seq[x]==seq[y] else 1*self.probability( tuple([ seq[x],seq[y] ]) ) 
                         for y in range(n)
                     ] 
                 for x in range(n) 
@@ -96,7 +97,6 @@ class Ngram(object):
 
         # track the row index in the table
         index_row = 0
-
         # resultant list
         res = [seq[0]]
 
@@ -113,8 +113,62 @@ class Ngram(object):
 
             # new index row 
             index_row = index_col
-        return res
+        return tuple(res)
 
+    def generate_sentence2(self, seq):
+        n = len(seq)
+        table = self.__generate_probability_table(seq) # get the table
+        table_unfolded = {}
+        low_case = {}
+        for i, row in enumerate(table):
+            for idx, prob in enumerate(row):
+                """
+                if prob <= 0:
+                    low_case[ (seq[i],seq[idx],) ] = prob
+                """
+                table_unfolded[ (seq[i],seq[idx],) ] = prob
+
+        table_unfolded = OrderedDict(sorted(table_unfolded.items(), key=operator.itemgetter(1),  reverse=True))
+
+        trie = {}
+        for i in range(n):
+            for j in range(n):
+                for k in range(n):
+                    key = (seq[i], seq[j], seq[k])
+                    if i==j==k:
+                        continue
+                    trie[key] = self.probability(key)
+        trie = OrderedDict(sorted(trie.items(), key=operator.itemgetter(1),  reverse=True))
+
+        for key in trie:
+            print(key, trie[key])
+
+        progress = []
+        deleted = []
+        word = seq[0]
+        print(entered)
+
+    def cnf_separator(self, cnf):
+        # contains the cnf separated raw sentences(seq/tuple)
+        raw = []
+
+        # recursive cnf separator
+        def cnf_recur(pre, post):
+            if len(post) == 1:
+                for x in post[0]:
+                    raw.append( tuple((pre + " " + x).split()) )
+            else:
+                for x in post[0]:
+                    cnf_recur(pre+" "+x, post[1:])
+
+        splitted = cnf.split()
+        separated = [ tuple(word.split('^^')) for word in splitted]
+        if not separated:
+            return []
+        cnf_recur("", separated)
+
+        final = [ self.generate_sentence(seq) for seq in raw ]
+        return final
 
 def main():
     start = time.time()
@@ -128,10 +182,7 @@ def main():
             continue
         if seq=="exit":
             break
-        seq = tuple(seq.split())
-        sentence = ngram.generate_sentence(seq)
-        print(sentence)
-        print(ngram.probability_sentence( tuple(sentence)))
+        print(ngram.cnf_separator(seq))
 
     ngram.close_ngramdb()
 
