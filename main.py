@@ -45,10 +45,10 @@ def test_dict():
             dicthandler.insert_unigram(splitted[0], tuple(splitted[1:len(splitted)]))
             i = input("enter nepali unigram and meaning separated by spaces: ")
 
-        print(dicthandler.get_english1('राम्रो'))
+        #print(dicthandler.get_english1('राम्रो'))
     except Exception as e:
         print(e)
 
 if __name__=="__main__":
-    #main()
-    test_dict()
+    main()
+    #test_dict()

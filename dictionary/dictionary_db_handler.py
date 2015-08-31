@@ -20,7 +20,11 @@ class DictionaryDBHandler(object):
                 SELECT English FROM Dictionary 
                 WHERE Nepali='{}'
                 """.format(nepali)).fetchall()
-        return [x[0] for x in result_tuples]
+        result = [x[0].lower().strip() for x in result_tuples]
+
+        result = set(result)
+        res1 = set(self.get_english1(nepali))
+        return list(result.union(res1))
 
     # here we insert nepali word and its equivalent english words
     def insert(self, nepali, *english):
@@ -42,7 +46,7 @@ class DictionaryDBHandler(object):
         # here english is tuple
         cursor = self.database.cursor()
         raw_res = cursor.execute("""
-                    SELECT ID FROM unigram_nepali WHERE unigram='{}'
+                    SELECT ID FROM nepali_unigram WHERE unigram='{}'
                 """.format(nepali_unigram)
         )
         result = raw_res.fetchall()
@@ -50,7 +54,7 @@ class DictionaryDBHandler(object):
             nep_id = int(result[0][0])
         elif len(result) == 0:
             # first insert the new nepali into database
-            cursor.execute("INSERT INTO unigram_nepali(unigram) VALUES(?)", [nepali_unigram])
+            cursor.execute("INSERT INTO nepali_unigram(unigram) VALUES(?)", [nepali_unigram])
             self.database.commit()
             # now get the id of the recently added row
             nep_id = int(cursor.lastrowid)
@@ -59,6 +63,7 @@ class DictionaryDBHandler(object):
         # now insert meanings
         if type(nep_id) is int:
             for word in english:
+                word = word.strip()
                 try:
                     res = cursor.execute("""
                                 INSERT INTO unigram_meanings(nepali_unigram, english) 
@@ -93,13 +98,22 @@ class DictionaryDBHandler(object):
                         SELECT ID FROM {} WHERE {}='{}'
                         """.format(table, field, nepali)
         )
-        nep_id = results.fetchall()[0][0]
+
+        try:
+            nep_id = results.fetchall()[0][0]
+        except Exception: # means no word found
+            return []
+
         meaning_table = table.split('_')[1]+'_'+'meanings'
         raw_results = cursor.execute('''
                             SELECT english FROM {} WHERE {}={}
                             '''.format(meaning_table,table ,nep_id)
         )
-        return [x[0] for x in raw_results.fetchall()]
+
+        try:
+            return [x[0].strip() for x in raw_results.fetchall()]
+        except Exception:
+            return []
 
 def main():
     print("This is dictionary dababase handler.. ")

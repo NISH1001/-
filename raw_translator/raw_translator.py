@@ -84,7 +84,7 @@ class RawTranslator(object):
             for x in words:
                 if is_nepali(x): 
                     eng_word = '^^'.join(list(
-                            map(lambda x: x.lower(), self.dict_handler.get_english(x))
+                            map(lambda a: a.lower(), self.dict_handler.get_english(x))
                             )
                         ) # CNF separated by ^^
 
@@ -100,7 +100,7 @@ class RawTranslator(object):
             return ' '.join(eng_words)
 
         except Exception as e:
-            print(''.join(e.args))
+            print('Error in raw_translator: '+''.join(e.args))
 
     def translate_ngram(self, nepali_text, n=2):
         words = nepali_text.split()
