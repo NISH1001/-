@@ -151,8 +151,9 @@ class RawTranslator(object):
         for simple_tense in self.tense_structures["Simple"]:
             for structure in self.tense_structures["Simple"][simple_tense]:
                 simple_result = re.search('(.+)'+structure+'$', nepali_phrase)
+                #print(nepali_phrase, structure, structure in nepali_phrase)
                 if simple_result is not None:
-
+                    print('match')
 
                     # check for two possibilities: single word nep_verb
                     #                              double word nep_verb
@@ -173,6 +174,8 @@ class RawTranslator(object):
             possibles = [nepali_root+'नु']
         elif re.search('(\S+)र्$', nepali_root):
             possibles = [nepali_root+'नु']
+        elif re.search('(\S+)र$', nepali_root):
+            possibles = [nepali_root+'्नु']
         else:
             possibles = [nepali_root+'नु', nepali_root+'उनु']
         return self.get_from_dict(possibles)
