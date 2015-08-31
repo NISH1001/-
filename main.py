@@ -50,5 +50,5 @@ def test_dict():
         print(e)
 
 if __name__=="__main__":
-    #main()
-    test_dict()
+    main()
+    #test_dict()

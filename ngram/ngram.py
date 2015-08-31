@@ -64,7 +64,14 @@ class Ngram(object):
     def probability(self, seq):
         length = len(seq)
         count = self.count(seq, total=False)
-        total = self.count(seq, total=True)
+        lower = []
+        for i in range(length-1):
+            lower.append(seq[i])
+
+        # get lower ngram tuple
+        lower = tuple(lower)
+        # total is the count of that lower ngram
+        total = self.count(lower, total=False)
         if not count or not total:
             return 0.0
         else:
@@ -115,39 +122,78 @@ class Ngram(object):
             index_row = index_col
         return tuple(res)
 
+    # our flooder -> overlapping tuple processer
+    def __flooder(self, seq, start_with, trie):
+        flood_list = [start_with]
+        closed_set = set(start_with)
+
+        for i in range(1,len(seq)-2):
+            # get previous tuple in the flood list
+            prev_key = flood_list[i-1]
+            # our next best tuple
+            next_tuple = None
+            # for getting best probability shit :D
+            prev_prob = -1
+
+            # iterate over all the trigrams in the trie
+            # cannot delete an element from a dict while in the loop -> hence copy
+            temp_dict = trie.copy()
+            for key in temp_dict:
+
+                # if current key/tuple begins with the words previous tuple in our flood_list has
+                if (key[0], key[1],) == (prev_key[1], prev_key[2],) and key[2] not in closed_set:
+                    if trie[key] > prev_prob:
+                        prev_prob, next_tuple = trie[key], key
+                        del trie[key]
+
+            # if we get the next tuple 
+            if next_tuple:
+                # update our closed set
+                closed_set.update(next_tuple)
+                # update our flood list
+                flood_list.append(next_tuple)
+
+        return flood_list
+
     def generate_sentence2(self, seq):
         n = len(seq)
-        table = self.__generate_probability_table(seq) # get the table
-        table_unfolded = {}
-        low_case = {}
-        for i, row in enumerate(table):
-            for idx, prob in enumerate(row):
-                """
-                if prob <= 0:
-                    low_case[ (seq[i],seq[idx],) ] = prob
-                """
-                table_unfolded[ (seq[i],seq[idx],) ] = prob
 
-        table_unfolded = OrderedDict(sorted(table_unfolded.items(), key=operator.itemgetter(1),  reverse=True))
-
+        # create our trigrams dict
+        # it is not a trie and following variable name 'trie' is hallucinating :P
         trie = {}
+        # 3 nested-loops
         for i in range(n):
             for j in range(n):
                 for k in range(n):
                     key = (seq[i], seq[j], seq[k])
-                    if i==j==k:
+                    if i==j==k or len(key)!=len(set(key)):
                         continue
+                    #print(key, self.count(key))
                     trie[key] = self.probability(key)
-        trie = OrderedDict(sorted(trie.items(), key=operator.itemgetter(1),  reverse=True))
+        #trie = OrderedDict(sorted(trie.items(), key=operator.itemgetter(1),  reverse=True))
 
+        # find the starting 3 words (a tuple) from trigrams
+        start_word = seq[0]
+        start_with = None
+        prev = -1
         for key in trie:
-            print(key, trie[key])
+            if key[0]==start_word:
+                if trie[key] > prev:
+                    prev, start_with = trie[key], key
 
-        progress = []
-        deleted = []
-        word = seq[0]
-        print(entered)
+        if not start_with:
+            return seq
 
+        # use our flooder (overlapping technique)
+        flood_list = self.__flooder(seq, start_with, trie)
+
+        final = list(start_with)
+        for i in range(1,len(flood_list)):
+            tup = flood_list[i]
+            final.append(tup[2])
+
+        return tuple(final)
+        
     def cnf_separator(self, cnf):
         # contains the cnf separated raw sentences(seq/tuple)
         raw = []
@@ -167,7 +213,7 @@ class Ngram(object):
             return []
         cnf_recur("", separated)
 
-        final = [ self.generate_sentence(seq) for seq in raw ]
+        final = [ self.generate_sentence2(seq) for seq in raw ]
         return final
 
 def main():
@@ -178,11 +224,14 @@ def main():
     # just a ngram tester
     while True:
         seq = str(input("enter sequence of words: "))
+        seq = tuple(seq.split())
         if not seq:
             continue
         if seq=="exit":
             break
-        print(ngram.cnf_separator(seq))
+        #print(ngram.cnf_separator(seq))
+        sentence = ngram.generate_sentence2(seq)
+        print(sentence)
 
     ngram.close_ngramdb()
 
