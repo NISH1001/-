@@ -1,14 +1,17 @@
+#!/usr/bin/env python3
+
+# inbuilt packages/moduels
 import sqlite3
 from raw_translator.raw_translator import RawTranslator
 from dictionary.dictionary_db_handler import DictionaryDBHandler
-
-
-#!/usr/bin/env python3
+import time
 
 # load our packages
+from raw_translator.raw_translator import RawTranslator
+from dictionary.dictionary_db_handler import DictionaryDBHandler
 from ngram import ngram
 from raw_translator import raw_translator as RT
-import time
+from utilities import cnf_separator
 
 def main():
     start = time.time()
@@ -21,6 +24,7 @@ def main():
     ''' translator object : i dont have verbs_tense.json '''
     translator = RawTranslator("data/dictionary.db")
 
+    # main loop
     while True:
         nepali = input("nepali: ")
         if nepali=="===":
@@ -28,7 +32,10 @@ def main():
         cnf = translator.translate(nepali)
         print("original cnf : {}".format(cnf))
 
-        sentences = ng.cnf_separator(cnf)
+        # get separated sentence list using the cnf forms
+        separated = cnf_separator(cnf)
+
+        sentences = ng.generate_sentences_from_list(separated)
         for sentence in sentences:
             print(sentence)
 

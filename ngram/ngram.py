@@ -193,28 +193,9 @@ class Ngram(object):
             final.append(tup[2])
 
         return tuple(final)
-        
-    def cnf_separator(self, cnf):
-        # contains the cnf separated raw sentences(seq/tuple)
-        raw = []
-
-        # recursive cnf separator
-        def cnf_recur(pre, post):
-            if len(post) == 1:
-                for x in post[0]:
-                    raw.append( tuple((pre + " " + x).split()) )
-            else:
-                for x in post[0]:
-                    cnf_recur(pre+" "+x, post[1:])
-
-        splitted = cnf.split()
-        separated = [ tuple(word.split('^^')) for word in splitted]
-        if not separated:
-            return []
-        cnf_recur("", separated)
-
-        final = [ self.generate_sentence2(seq) for seq in raw ]
-        return final
+    
+    def generate_sentences_from_list(self, seq_list):
+        return [ self.generate_sentence2(seq) for seq in seq_list ]
 
 def main():
     start = time.time()
