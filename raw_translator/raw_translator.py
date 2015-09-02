@@ -1,6 +1,7 @@
 import json
 import re
 from dictionary.dictionary_db_handler import DictionaryDBHandler
+from raw_translator.utility import *
 
 class RawTranslatorError(Exception):
     def __init__(self, args):
@@ -31,32 +32,19 @@ methods:
     ...
 """
 
-def is_nepali(text):
-    #for now just check if eng chars are not present 
-    for x in range(ord('a'), ord('z')+1):
-        if chr(x) in text: return False
-    for x in range(ord('A'), ord('Z')+1):
-        if chr(x) in text: return False
-    return True
-    
+   
 
 class RawTranslator(object):
 
     def __init__(self, db):
         self.dict_handler = DictionaryDBHandler(db)
 
-        verbs = open("data/verb_tenses.json", 'r')
-        verbs = verbs.read()
-        self.verb_tenses = json.loads(verbs)
-
         rules = open("data/Rule.json", "r")
         rules = rules.read()
         self.tense_structures = json.loads(rules)
 
-        nepeng = open("data/nepeng.json", "r")
-        nepeng = nepeng.read()
-        self.nep_eng = json.loads(nepeng)
-    
+        self.utility = Utility()
+            
     
     def translate(self, nepali_text):
         try:
@@ -71,7 +59,7 @@ class RawTranslator(object):
 
             for i, item in enumerate(bigrams):
                 eng_phrase = self.get_action(item) # checks bigram if it is action
-                #print("english phrase: ",eng_phrase)
+                print('nepali:',item, eng_phrase)
 
                 if eng_phrase is not None: # means phrase match found
                     # replace the phrase with english equivalent
@@ -82,9 +70,16 @@ class RawTranslator(object):
             eng_words = []
 
             for x in words:
-                if is_nepali(x): 
+                if Utility.is_nepali(x): 
+                    eng_meanings = self.dict_handler.get_english(x)
+
+                    if len(eng_meanings) == 0:
+                        # process for हरु, मा, बाट, ले, and so on
+                        eng_meanings = self.utility.process_suffix(x)
+                        pass
+
                     eng_word = '^^'.join(list(
-                            map(lambda a: a.lower(), self.dict_handler.get_english(x))
+                            map(lambda a: a.lower(), eng_meanings)
                             )
                         ) # CNF separated by ^^
 
@@ -102,25 +97,19 @@ class RawTranslator(object):
         except Exception as e:
             print('Error in raw_translator: '+''.join(e.args))
 
-    def translate_ngram(self, nepali_text, n=2):
-        words = nepali_text.split()
-        ngrams = [' '.join(words[x:x+n]) for x in range(len(words)-n+1)]
-
-        for i, item in enumerate(ngrams):
-            eng_phrase = self.get_action(item)
-            if eng_phrase is not None:
-                nepali_text = re.sub(item, eng_phrase, nepali_text, 1)
-        # Since the possible ngrams are substituted, we now do      
-
 
     def get_action(self, nepali_phrase): # nepali phrase is bigram/unigram for now
         # Check if the bigram matches any form in our tenses    
         for simple_tense in self.tense_structures["Simple"]:
             for structure in self.tense_structures["Simple"][simple_tense]:
+                
+                struc_process = re.match('([^a-z]+)([a-z]*)', structure)
+                structure_tags = struc_process.group(2)
+                actual_str = struc_process.group(1)
 
                 # Check if the phrase's last part matches fully with the structure
                 # If so it is not only simple, check remaining first part too
-                simple_result = re.search(' ('+structure+')', nepali_phrase)
+                simple_result = re.search(' ('+actual_str+')', nepali_phrase)
 
                 if simple_result is not None:
 
@@ -139,91 +128,44 @@ class RawTranslator(object):
 
                                 #print("bibek", non_simple_tense, each, non_simple_result.group(1))
                                 # Here, we have the verb root in non_simple_root, so extract verb
-                                root_verb = self.get_eng_verb(non_simple_result.group(1))
+                                root_verb = self.utility.get_eng_verb(non_simple_result.group(1))
 
-                                return self.get_tense(root_verb, simple_tense, non_simple_tense) # here return the correct tense of the verb
+                                return self.utility.get_tense(root_verb, simple_tense, non_simple_tense) # here return the correct tense of the verb
 
-                    # it means no non-simple structure found like in म घर छु।
-                    # return the first part and tense of second part e.g return 'घर am'
-                    return first_part + self.get_tense(simple_result.group(1), simple_tense) 
+                    # it means no non-simple structure found like in म खतरा  छु।
+                    # return the first part and tense of second part e.g return 'खतरा  am'
+                    return first_part +' '+ self.utility.get_tense(simple_result.group(1), simple_tense, being_verb=True) 
 
         # Since non simple results not found, check simple only
         for simple_tense in self.tense_structures["Simple"]:
             for structure in self.tense_structures["Simple"][simple_tense]:
-                simple_result = re.search('(.+)'+structure+'$', nepali_phrase)
+                
+                neg = False
+
+                struc_process = re.match('([^a-z]+)([a-z]*)', structure)
+                structure_tags = struc_process.group(2)
+                actual_str = struc_process.group(1)
+
+                if 'n' in structure_tags:
+                    neg = True
+
+                simple_result = re.search('(.+)'+actual_str+'$', nepali_phrase)
                 #print(nepali_phrase, structure, structure in nepali_phrase)
                 if simple_result is not None:
-                    print('match')
 
                     # check for two possibilities: single word nep_verb
                     #                              double word nep_verb
-                    root_verb = self.get_eng_verb(simple_result.group(1)) # double_word
+                    root_verb = self.utility.get_eng_verb(simple_result.group(1)) # double_word
                     if root_verb is not None:
-                        return self.get_tense(root_verb, simple_tense) # return the correct tense of the verb
+                        return self.utility.get_tense(root_verb, simple_tense) # return the correct tense of the verb
                     else:
-                        root_verb = self.get_eng_verb(simple_result.group(1).split()[-1]) # single word verb
+                        root_verb = self.utility.get_eng_verb(simple_result.group(1).split()[-1]) # single word verb
                         if root_verb is not None:
-                            return nepali_phrase.split()[0]+ ' '+self.get_tense(root_verb, simple_tense)
+                            return nepali_phrase.split()[0]+ ' '+self.utility.get_tense(root_verb, simple_tense, negative=neg)
         return None
 
-    def get_eng_verb(self, nepali_root):
-        possibles = []
-        if re.search('(\S+)नु$', nepali_root):
-            possibles = [nepali_root]
-        elif re.search('(\S+)उ$', nepali_root):
-            possibles = [nepali_root+'नु']
-        elif re.search('(\S+)र्$', nepali_root):
-            possibles = [nepali_root+'नु']
-        elif re.search('(\S+)र$', nepali_root):
-            possibles = [nepali_root+'्नु']
-        else:
-            possibles = [nepali_root+'नु', nepali_root+'उनु']
-        return self.get_from_dict(possibles)
+
     
-    def get_from_dict(self, possibles):
-        for x in possibles:
-            if self.nep_eng.get(x, '') != '':
-                return self.nep_eng[x]
-        return None
-
-    def get_tense(self, root_verb, simple_tense, non_simple_tense=None, singular=False):
-        if non_simple_tense=='continuous':
-            if simple_tense=='present':
-                if singular: return "is "+self.verb_tenses[root_verb]['continuous']
-                else: return "are^^am "+self.verb_tenses[root_verb]['continuous']
-            if simple_tense=='past':
-                if singular: return "was "+self.verb_tenses[root_verb]['continuous']
-                else: return "were "+self.verb_tenses[root_verb]['continuous']
-            if simple_tense=='future':
-                return "will be "+self.verb_tenses[root_verb]['continuous']
-
-        elif non_simple_tense=='perfect':
-            if simple_tense=='present':
-                if singular: return "has "+self.verb_tenses[root_verb]['perfect']
-                else: return "have "+self.verb_tenses[root_verb]['perfect']
-            if simple_tense=='past':
-                return "had "+self.verb_tenses[root_verb]['perfect']
-            if simple_tense=='future':
-                return "will have "+self.verb_tenses[root_verb]['perfect']
-
-        elif non_simple_tense=='perfect continuous':
-            if simple_tense=='present':
-                if singular: return "has been "+self.verb_tenses[root_verb]['continuous']
-                else: return "have been "+self.verb_tenses[root_verb]['continuous']
-            if simple_tense=='past':
-                return "had been "+self.verb_tenses[root_verb]['continuous']
-            if simple_tense=='future':
-                return "will have been "+self.verb_tenses[root_verb]['continuous']
-        else:
-            if simple_tense=="present":
-                if singular: return self.verb_tenses[root_verb]['singular']
-                else: return root_verb
-            if simple_tense=='past':
-                return self.verb_tenses[root_verb]['past']
-            if simple_tense=='future':
-                return "will " + root_verb
-
-
 def main():
     translator = RawTranslator("data/dictionary.db")
     n = input('enter nepali sentence ')
