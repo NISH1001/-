@@ -26,6 +26,7 @@ def main():
 
     # main loop
     while True:
+        print("-"*80)
         nepali = input("nepali: ")
         if nepali=="===":
             break
@@ -36,8 +37,11 @@ def main():
         separated = cnf_separator(cnf)
 
         sentences = ng.generate_sentences_from_list(separated)
+        print("possible synonym sentences : ")
         for sentence in sentences:
             print(sentence)
+        best = ng.generate_sentence_best(sentences)
+        print("best : ", best)
 
     print("exiting...")
     ng.close_ngramdb()

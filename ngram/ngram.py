@@ -73,14 +73,14 @@ class Ngram(object):
         # total is the count of that lower ngram
         total = self.count(lower, total=False)
         if not count or not total:
-            return 0.0
+            return 1e-9
         else:
             return count/total
 
-    def probability_sentence(self, seq):
+    def probability_sentence(self, seq, n=3):
         prob = 1
-        for x in range( len(seq) -1):
-            prob *= self.probability( (seq[x], seq[x+1],) )
+        for x in range( len(seq) -2):
+            prob *= self.probability( (seq[x], seq[x+1], seq[x+2]) )
         return prob
     
     """ private function: create our 2d table with probability using list comprehension"""
@@ -197,6 +197,15 @@ class Ngram(object):
     def generate_sentences_from_list(self, seq_list):
         return [ self.generate_sentence2(seq) for seq in seq_list ]
 
+    def generate_sentence_best(self, seq_list):
+        prev = 0
+        best = None
+        for sentence in seq_list:
+            prob = self.probability_sentence(sentence)
+            if prob >= prev:
+                prev, best = prob, sentence
+        return best
+
 def main():
     start = time.time()
     ngram = Ngram(data_path="../data/ngrams/", load_type="memory")
@@ -213,6 +222,7 @@ def main():
         #print(ngram.cnf_separator(seq))
         sentence = ngram.generate_sentence2(seq)
         print(sentence)
+        print("prob : ", ngram.probability_sentence(sentence, n=3))
 
     ngram.close_ngramdb()
 
