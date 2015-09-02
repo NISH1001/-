@@ -73,14 +73,14 @@ class Ngram(object):
         # total is the count of that lower ngram
         total = self.count(lower, total=False)
         if not count or not total:
-            return 0.0
+            return 1e-9
         else:
             return count/total
 
-    def probability_sentence(self, seq):
+    def probability_sentence(self, seq, n=3):
         prob = 1
-        for x in range( len(seq) -1):
-            prob *= self.probability( (seq[x], seq[x+1],) )
+        for x in range( len(seq) -2):
+            prob *= self.probability( (seq[x], seq[x+1], seq[x+2]) )
         return prob
     
     """ private function: create our 2d table with probability using list comprehension"""
@@ -193,28 +193,18 @@ class Ngram(object):
             final.append(tup[2])
 
         return tuple(final)
-        
-    def cnf_separator(self, cnf):
-        # contains the cnf separated raw sentences(seq/tuple)
-        raw = []
+    
+    def generate_sentences_from_list(self, seq_list):
+        return [ self.generate_sentence2(seq) for seq in seq_list ]
 
-        # recursive cnf separator
-        def cnf_recur(pre, post):
-            if len(post) == 1:
-                for x in post[0]:
-                    raw.append( tuple((pre + " " + x).split()) )
-            else:
-                for x in post[0]:
-                    cnf_recur(pre+" "+x, post[1:])
-
-        splitted = cnf.split()
-        separated = [ tuple(word.split('^^')) for word in splitted]
-        if not separated:
-            return []
-        cnf_recur("", separated)
-
-        final = [ self.generate_sentence2(seq) for seq in raw ]
-        return final
+    def generate_sentence_best(self, seq_list):
+        prev = 0
+        best = None
+        for sentence in seq_list:
+            prob = self.probability_sentence(sentence)
+            if prob >= prev:
+                prev, best = prob, sentence
+        return best
 
 def main():
     start = time.time()
@@ -232,6 +222,7 @@ def main():
         #print(ngram.cnf_separator(seq))
         sentence = ngram.generate_sentence2(seq)
         print(sentence)
+        print("prob : ", ngram.probability_sentence(sentence, n=3))
 
     ngram.close_ngramdb()
 
