@@ -62,7 +62,6 @@ class RawTranslator(object):
 
             for i, item in enumerate(bigrams):
                 eng_phrase = self.get_action(item) # checks bigram if it is action
-                print('nepali:',item, eng_phrase)
 
                 if eng_phrase is not None: # means phrase match found
                     # replace the phrase with english equivalent
@@ -116,7 +115,6 @@ class RawTranslator(object):
                 simple_result = re.search(' ('+actual_str+')$', nepali_phrase)
 
                 if simple_result is not None:
-
                     #print("it is non simple tense...", simple_result.group(1))
                     #print(simple_tense, structure, simple_result.group(0))
 
@@ -138,7 +136,7 @@ class RawTranslator(object):
 
                     # it means no non-simple structure found like in म खतरा  छु।
                     # return the first part and tense of second part e.g return 'खतरा  am'
-                    return first_part +' '+ self.utility.get_tense(simple_result.group(1), simple_tense, being_verb=True) 
+                    return remaining_part+' '+ self.utility.get_tense(simple_result.group(1), simple_tense, being_verb=True) 
 
         # Since non simple results not found, check simple only
         for simple_tense in self.tense_structures["Simple"]:
@@ -150,9 +148,12 @@ class RawTranslator(object):
                 structure_tags = struc_process.group(2)
                 actual_str = struc_process.group(1)
 
+                print(nepali_phrase,'   ', actual_str)
+
                 simple_result = re.search('(.+)'+actual_str+'$', nepali_phrase)
                 #print(nepali_phrase, structure, structure in nepali_phrase)
                 if simple_result is not None:
+                    print('match simple')
 
                     if 'n' in structure_tags:
                         neg=True
@@ -168,21 +169,36 @@ class RawTranslator(object):
                             return nepali_phrase.split()[0]+ ' '+self.utility.get_tense(root_verb, simple_tense, negative=neg)
         return None
 
+
     def process_suffix(self, nepali_word):
-        # first check if हरु exist or not
-        plural_result = self.utility.check_plural(nepali_word)
-        if plural_result[0]:
-            return list(map(self.utility.plural, self.dict_handler.get_english(plural_result[1])))
 
         words = None
         suffx_meanings = None
 
+        # check 'ko' at the end
+        res = re.search('(\S+)को$', nepali_word)
+        if res is not None:
+            new_word = res.group(1)
+            plural_result = self.utility.check_plural(new_word)
+            if plural_result[0]:
+                words = list(map(self.utility.plural, self.dict_handler.get_english(plural_result[1])))
+                words = [x+"'" for x in words]
+                return '^^'.join(words)
+            else:
+                return '^^'.join([x+"'s" for x in self.dict_handler.get_english(new_word)])
+
+        # first check if हरु exist or not
+        plural_result = self.utility.check_plural(nepali_word)
+        if plural_result[0]:
+            words = list(map(self.utility.plural, self.dict_handler.get_english(plural_result[1])))
+            # if haru exist at last, return plural
+            return '^^'.join(words)
+
+        
         # if not then check for ले,बाट, tira, mathi, like naam 
         for suffix in self.suffices:
             res = re.search('(\S+)'+suffix.strip()+'$', nepali_word)
-            print(suffix, nepali_word)
             if res is not None:
-                print('suffix match')
                 new_word = res.group(1)
                 suffx_meanings = self.suffices.get(suffix, '') # meanings of ले, तर्फ, etc
                 # check for 'हरु' in new_word, which might still be present like in घरहरुले
@@ -193,7 +209,6 @@ class RawTranslator(object):
                     words = self.dict_handler.get_english(new_word)
 
         return '^^'.join(suffx_meanings) + ' ' + '^^'.join(words)
-
 
     
 def main():

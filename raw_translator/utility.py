@@ -37,7 +37,6 @@ class Utility(object):
             pres_neg='do not'
             past_neg='did not'
 
-        print(neg, simple_tense, non_simple_tense)
 
         if being_verb:
             if(simple_tense=="past"):
