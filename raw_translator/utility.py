@@ -29,52 +29,59 @@ class Utility(object):
  
 
     def get_tense(self, root_verb, simple_tense, non_simple_tense=None, singular=False, being_verb=False, negative=False):
-        return_word = ""
+
+        neg = pres_neg= past_neg= ""
+        if negative: 
+            neg="not"
+            pres_neg='do not'
+            past_neg='did not'
+
+        print(neg, simple_tense, non_simple_tense)
+
         if being_verb:
             if(simple_tense=="past"):
-                return_word = "was^^were^^had"
+                return  "was^^were^^had "+ neg
             elif (simple_tense=="present"):
-                return_word= "am^^is^^are^^have^^has"
+                return  "am^^is^^are^^have^^has " + neg
             else:
-                return_word =  "will be"
+                return "will "+neg+" be"
+
         if non_simple_tense=='continuous':
             if simple_tense=='present':
-                if singular: return_word= "is "+self.verb_tenses[root_verb]['continuous']
-                else: return_word= "are^^am "+self.verb_tenses[root_verb]['continuous']
+                if singular: return "is "+neg+' '+self.verb_tenses[root_verb]['continuous']
+                else: return "are^^am "+neg+' '+self.verb_tenses[root_verb]['continuous']
             if simple_tense=='past':
-                if singular: return_word ="was "+self.verb_tenses[root_verb]['continuous']
-                else: return_word= "were "+self.verb_tenses[root_verb]['continuous']
+                if singular: return "was "+neg+' '+self.verb_tenses[root_verb]['continuous']
+                else: return "were "+neg+' '+self.verb_tenses[root_verb]['continuous']
             if simple_tense=='future':
-                return_word= "will be "+self.verb_tenses[root_verb]['continuous']
+                return "will "+neg+" "+"be "+self.verb_tenses[root_verb]['continuous']
 
         elif non_simple_tense=='perfect':
             if simple_tense=='present':
-                if singular: return_word= "has "+self.verb_tenses[root_verb]['perfect']
-                else: return_word= "have "+self.verb_tenses[root_verb]['perfect']
+                if singular: return "has "+neg+' '+self.verb_tenses[root_verb]['perfect']
+                else: return "have "+neg+' '+self.verb_tenses[root_verb]['perfect']
             if simple_tense=='past':
-                return_word= "had "+self.verb_tenses[root_verb]['perfect']
+                return "had "+neg+' '+self.verb_tenses[root_verb]['perfect']
             if simple_tense=='future':
-                return_word= "will have "+self.verb_tenses[root_verb]['perfect']
+                return "will "+neg+' '+"have "+self.verb_tenses[root_verb]['perfect']
 
         elif non_simple_tense=='perfect continuous':
             if simple_tense=='present':
-                if singular: return_word= "has been "+self.verb_tenses[root_verb]['continuous']
-                else: return_word= "have been "+self.verb_tenses[root_verb]['continuous']
+                if singular: return "has "+neg+" been "+self.verb_tenses[root_verb]['continuous']
+                else: return "have "+neg+" been "+self.verb_tenses[root_verb]['continuous']
             if simple_tense=='past':
-                return_word= "had been "+self.verb_tenses[root_verb]['continuous']
+                return "had "+neg+" been "+self.verb_tenses[root_verb]['continuous']
             if simple_tense=='future':
-                return_word= "will have been "+self.verb_tenses[root_verb]['continuous']
+                return "will "+neg+" have been "+self.verb_tenses[root_verb]['continuous']
         else:
             if simple_tense=="present":
-                if singular: return_word= self.verb_tenses[root_verb]['singular']
-                else: return_word= root_verb
+                if singular: return pres_neg+' '+self.verb_tenses[root_verb]['singular']
+                else: return pres_neg+' '+root_verb
             if simple_tense=='past':
-                return_word= self.verb_tenses[root_verb]['past']
+                if negative: return past_neg+' '+root_verb
+                else: return self.verb_tenses[root_verb]['past']
             if simple_tense=='future':
-                return_word= "will " + root_verb
-
-            if negative:
-                return return_word + " not"
+                return "will "+neg+' ' + root_verb
 
 
     def process_suffix(self, nepali_word):

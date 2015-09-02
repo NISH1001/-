@@ -106,10 +106,11 @@ class RawTranslator(object):
                 struc_process = re.match('([^a-z]+)([a-z]*)', structure)
                 structure_tags = struc_process.group(2)
                 actual_str = struc_process.group(1)
+                #actual_str = structure
 
                 # Check if the phrase's last part matches fully with the structure
                 # If so it is not only simple, check remaining first part too
-                simple_result = re.search(' ('+actual_str+')', nepali_phrase)
+                simple_result = re.search(' ('+actual_str+')$', nepali_phrase)
 
                 if simple_result is not None:
 
@@ -117,13 +118,13 @@ class RawTranslator(object):
                     #print(simple_tense, structure, simple_result.group(0))
 
                     # Search for match in the first part of the phrase
-                    first_part = nepali_phrase.split()[0]
+                    #first_part = nepali_phrase.split()[0]
                     remaining_part = re.sub(' ' +structure+'$', '', nepali_phrase)
                     # Now check in continuous, perfect and perfect continuous lists
                     for non_simple_tense in self.tense_structures["NonSimple"]:
                         # Here, full part won't match, so check partial
                         for each in self.tense_structures["NonSimple"][non_simple_tense]:
-                            non_simple_result = re.search('(\S+)'+each+'$', first_part)
+                            non_simple_result = re.search('(\S+)'+each+'$', remaining_part)
                             if non_simple_result is not None: 
 
                                 #print("bibek", non_simple_tense, each, non_simple_result.group(1))
@@ -146,20 +147,20 @@ class RawTranslator(object):
                 structure_tags = struc_process.group(2)
                 actual_str = struc_process.group(1)
 
-                if 'n' in structure_tags:
-                    neg = True
-
                 simple_result = re.search('(.+)'+actual_str+'$', nepali_phrase)
                 #print(nepali_phrase, structure, structure in nepali_phrase)
                 if simple_result is not None:
+
+                    if 'n' in structure_tags:
+                        neg=True
 
                     # check for two possibilities: single word nep_verb
                     #                              double word nep_verb
                     root_verb = self.utility.get_eng_verb(simple_result.group(1)) # double_word
                     if root_verb is not None:
-                        return self.utility.get_tense(root_verb, simple_tense) # return the correct tense of the verb
+                        return self.utility.get_tense(root_verb, simple_tense, negative=neg) # return the correct tense of the verb
                     else:
-                        root_verb = self.utility.get_eng_verb(simple_result.group(1).split()[-1]) # single word verb
+                        root_verb = self.utility.get_eng_verb(simple_result.group(1).split()[-1] ) # single word verb
                         if root_verb is not None:
                             return nepali_phrase.split()[0]+ ' '+self.utility.get_tense(root_verb, simple_tense, negative=neg)
         return None
