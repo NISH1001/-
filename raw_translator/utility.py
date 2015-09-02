@@ -19,6 +19,7 @@ class Utility(object):
         nepeng = nepeng.read()
         self.nep_eng = json.loads(nepeng)
 
+        
     def is_nepali(text):
         #for now just check if eng chars are not present 
         for x in range(ord('a'), ord('z')+1):
@@ -84,21 +85,12 @@ class Utility(object):
                 return "will "+neg+' ' + root_verb
 
 
-    def process_suffix(self, nepali_word):
-        # first check for ले,बाट, tira, mathi, like naam 
-        self.suffices = []
-        for suffix in self.suffices:
-            res = re.search('(\S+)'+suffix+'$', nepali_word)
-            if res is not None:
-                new_word = res.group(1)
-                # check for 'हरु' in new_word
-                res = re.search('(\S+)हरु$', new_word)
-                if res is not None:
-                    word = res.group(1)
-                    return self.plural(self.dictionary_db_handler.get_english(word))
-                return self.dictionary_db_handler.get_english(word)
-        return []
-
+    
+    def check_plural(self, nepali_word):
+        res = re.search('(\S+)हरु$', nepali_word)
+        if res is not None:
+            return (True, res.group(1))
+        return(False, nepali_word)
 
     def plural(self, eng):
         return eng+'s'

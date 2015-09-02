@@ -43,6 +43,9 @@ class RawTranslator(object):
         rules = rules.read()
         self.tense_structures = json.loads(rules)
 
+        suffices = open("data/suffices.json","r")
+        self.suffices = json.loads(suffices.read())
+
         self.utility = Utility()
             
     
@@ -75,20 +78,20 @@ class RawTranslator(object):
 
                     if len(eng_meanings) == 0:
                         # process for हरु, मा, बाट, ले, and so on
-                        eng_meanings = self.utility.process_suffix(x)
-                        pass
+                        eng_words.append(self.process_suffix(x))
 
-                    eng_word = '^^'.join(list(
-                            map(lambda a: a.lower(), eng_meanings)
-                            )
-                        ) # CNF separated by ^^
+                    else:
+                        eng_word = '^^'.join(list(
+                                map(lambda a: a.lower(), eng_meanings)
+                                )
+                            ) # CNF separated by ^^
 
-                    '''
-                    if eng_word=='': # which is the case when no meaning found in dict
-                        eng_word==get_action(x) # checks unigram
-                    '''
+                        '''
+                        if eng_word=='': # which is the case when no meaning found in dict
+                            eng_word==get_action(x) # checks unigram
+                        '''
 
-                    eng_words.append(eng_word)
+                        eng_words.append(eng_word)
                 else:
                     eng_words.append(x.lower())
 
@@ -164,6 +167,32 @@ class RawTranslator(object):
                         if root_verb is not None:
                             return nepali_phrase.split()[0]+ ' '+self.utility.get_tense(root_verb, simple_tense, negative=neg)
         return None
+
+    def process_suffix(self, nepali_word):
+        # first check if हरु exist or not
+        plural_result = self.utility.check_plural(nepali_word)
+        if plural_result[0]:
+            return list(map(self.utility.plural, self.dict_handler.get_english(plural_result[1])))
+
+        words = None
+        suffx_meanings = None
+
+        # if not then check for ले,बाट, tira, mathi, like naam 
+        for suffix in self.suffices:
+            res = re.search('(\S+)'+suffix.strip()+'$', nepali_word)
+            print(suffix, nepali_word)
+            if res is not None:
+                print('suffix match')
+                new_word = res.group(1)
+                suffx_meanings = self.suffices.get(suffix, '') # meanings of ले, तर्फ, etc
+                # check for 'हरु' in new_word, which might still be present like in घरहरुले
+                plural_result = self.utility.check_plural(new_word) 
+                if plural_result[0]:
+                    words = list(map(self.utility.plural, self.dict_handler.get_english(plural_result[1]))) 
+                else:
+                    words = self.dict_handler.get_english(new_word)
+
+        return '^^'.join(suffx_meanings) + ' ' + '^^'.join(words)
 
 
     
