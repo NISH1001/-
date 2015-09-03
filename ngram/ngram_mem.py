@@ -142,15 +142,15 @@ class NgramMem(object):
                 ret = 0
         return int(ret)
 
-    def probability(self, seq):
-        length = len(seq)
-        count = self.count(seq, total=False)
-        total = self.count(seq, total=True)
-        if not count or not total:
-            return 0.0
+    def count_vocab(self, n=2):
+        if n==2:
+            return len(self.bigrams)
+        elif n==3:
+            return len(self.trigrams)
+        elif n==4:
+            return len(self.quadgrams)
         else:
-            return count/total
-
+            return 0
 
 def main():
     ngrammem = NgramMem()

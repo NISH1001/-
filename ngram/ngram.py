@@ -44,43 +44,55 @@ class Ngram(object):
             ngram_mem = NgramMem(data_path=data_path)
             ngram_mem.load_all(pickle=True)
             self.__count = ngram_mem.count
+            self.__count_vocab = ngram_mem.count_vocab
         else:
             self.__count = self.ngramdb.count
 
     def close_ngramdb(self):
         self.ngramdb.close()
 
-    """
-    get integer count of the sequence of words
-    seq : is a tuple of words
-    returns count of occurences of such sequence
-    if total count is needed just set total to True
-        and pass garbage seq
-    """
     def count(self, seq, total=False):
+        """
+        get integer count of the sequence of words
+        seq : is a tuple of words
+        returns count of occurences of such sequence
+        if total count is needed just set total to True
+            and pass garbage seq
+        """
+
         return self.__count(seq, total)
 
-    """ get probability of the ngram sequence"""
     def probability(self, seq):
+        """ get probability of the ngram sequence"""
+
         length = len(seq)
         count = self.count(seq, total=False)
-        lower = []
-        for i in range(length-1):
-            lower.append(seq[i])
 
         # get lower ngram tuple
-        lower = tuple(lower)
+        lower = tuple( [ seq[i] for i in range(length-1) ] )
+
         # total is the count of that lower ngram
-        total = self.count(lower, total=False)
-        if not count or not total:
+        count_lower = self.count(lower, total=False)
+
+        """
+        if not count or not count_lower:
             return 1e-9
         else:
-            return count/total
+            #return count/total
+        """
+        # smoothing is done finally
+        return (count+1) / (count_lower + self.__count_vocab(n=length-1) )
 
     def probability_sentence(self, seq, n=3):
+        """
+            calculates the probability of given sentence
+            using markov chain
+        """
         prob = 1
-        for x in range( len(seq) -2):
-            prob *= self.probability( (seq[x], seq[x+1], seq[x+2]) )
+        for i in range( len(seq) - (n-1) ):
+            tup = tuple( [ seq[i+j] for j in range(n) ] )
+            print(tup)
+            prob *= self.probability( (seq[i], seq[i+1], seq[i+2]) )
         return prob
     
     """ private function: create our 2d table with probability using list comprehension"""
