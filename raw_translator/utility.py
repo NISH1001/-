@@ -1,5 +1,6 @@
 import re
 import json
+from raw_translator.raw_translator import *
 
 class UtilityError(Exception):
     def __init__(self, args):
@@ -82,6 +83,7 @@ class Utility(object):
                 else: return self.verb_tenses[root_verb]['past']
             if simple_tense=='future':
                 return "will "+neg+' ' + root_verb
+        return None
 
 
     

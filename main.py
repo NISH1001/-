@@ -25,7 +25,8 @@ def main():
     translator = RawTranslator("data/dictionary.db")
 
     # main loop
-    while True:
+    num_sentences = int(input("how many sentences you will enter?(you may though exit by typing ===) : "))
+    for x in range(num_sentences):
         print("-"*80)
         nepali = input("nepali: ")
         if nepali=="===":
