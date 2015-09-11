@@ -11,10 +11,12 @@ class UtilityError(Exception):
 
 
 class Utility(object):
+    verb_tenses = json.loads(open("data/verb_tenses.json").read())
     def __init__(self):
         verbs = open("data/verb_tenses.json", 'r')
         verbs = verbs.read()
         self.verb_tenses = json.loads(verbs)
+        verb_tenses = self.verb_tenses#this needed to be accessed by raw_translator, so made static
 
         nepeng = open("data/nepeng.json", "r")
         nepeng = nepeng.read()
@@ -108,7 +110,8 @@ class Utility(object):
         elif re.search('(\S+)र$', nepali_root):
             possibles = [nepali_root+'्नु']
         else:
-            possibles = [nepali_root+'नु', nepali_root+'उनु']
+            possibles = [nepali_root +'्नु',nepali_root+'नु', nepali_root+'उनु']
+        #print('possibles',possibles)
         return self.get_from_dict(possibles)
     
     def get_from_dict(self, possibles):
