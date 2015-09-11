@@ -53,18 +53,22 @@ def main():
         nepali = input("nepali: ")
         if nepali=="===":
             break
-        cnf = translator.translate(nepali)
-        #print("original cnf : {}".format(cnf))
+        try:
+            cnf = translator.translate(nepali)
+            #print("original cnf : {}".format(cnf))
 
-        # get separated sentence list using the cnf forms
-        separated = cnf_separator(cnf)
+            # get separated sentence list using the cnf forms
+            separated = cnf_separator(cnf)
 
-        sentences = ng.generate_sentences_from_list(separated)
-        #print("possible synonym sentences : ")
-        #for sentence in sentences:
-        #    print(sentence)
-        best = ng.generate_sentence_best(sentences)
-        print("Translated : ", ' '.join(best))
+            sentences = ng.generate_sentences_from_list(separated)
+            #print("possible synonym sentences : ")
+            #for sentence in sentences:
+            #    print(sentence)
+            best = ng.generate_sentence_best(sentences)
+            print("Translated : ", ' '.join(best))
+        except Exception as e:
+            print(repr(e))
+            continue
 
     print("exiting...")
 
