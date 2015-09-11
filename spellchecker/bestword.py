@@ -17,7 +17,7 @@ def train(features):
         model[f] += 1
     return model
 text=(minWords(open('data.txt').read())).split()
-bigrams=[''.join(text[x:x+2]) for x in range(len(text)-1)]
+bigrams=[text[x:x+2] for x in range(len(text)-1)]
 #print(bigrams)
 NWORDS = train(text)
 
