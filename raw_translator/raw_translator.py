@@ -130,11 +130,12 @@ class RawTranslator(object):
                             non_simple_result = re.search('(\S+)'+each+'$', remaining_part)
                             if non_simple_result is not None: 
 
-                                #print("bibek", non_simple_tense, each, non_simple_result.group(1))
+                                print("bibek", non_simple_tense, each, non_simple_result.group(1))
                                 # Here, we have the verb root in non_simple_root, so extract verb
                                 root_verb = self.utility.get_eng_verb(non_simple_result.group(1))
+                                if not root_verb is None:
 
-                                return self.utility.get_tense(root_verb, simple_tense, non_simple_tense, negative=neg, singular='s' in structure_tags) 
+                                    return self.utility.get_tense(root_verb, simple_tense, non_simple_tense, negative=neg, singular='s' in structure_tags) 
                                 # here return the correct tense of the verb
 
                     # it means no non-simple structure found like in म खतरा  छु।
@@ -158,7 +159,7 @@ class RawTranslator(object):
                 simple_result = re.search('(.+)'+actual_str+'$', nepali_phrase)
                 #print(nepali_phrase, structure, structure in nepali_phrase)
                 if simple_result is not None:
-                    print('match simple')
+                    #print('match simple')
 
                     if 'n' in structure_tags:
                         neg=True
@@ -166,7 +167,7 @@ class RawTranslator(object):
                     # check for two possibilities: single word nep_verb
                     #                              double word nep_verb
                     nep_verb_part = simple_result.group(1)
-                    print('**'+ nep_verb_part+'**')
+                    #print('**'+ nep_verb_part+'**')
                     if nep_verb_part=='':continue
                     root_verb = self.utility.get_eng_verb(simple_result.group(1)) # double_word
                     if root_verb is not None:
