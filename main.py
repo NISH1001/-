@@ -2,6 +2,7 @@
 
 # inbuilt packages/moduels
 import sqlite3
+import sys
 from raw_translator.raw_translator import RawTranslator
 from dictionary.dictionary_db_handler import DictionaryDBHandler
 import time
@@ -12,6 +13,29 @@ from dictionary.dictionary_db_handler import DictionaryDBHandler
 from ngram import ngram
 from raw_translator import raw_translator as RT
 from utilities import cnf_separator
+
+def get_input():
+    # main loop
+    while True:
+        print("-"*80)
+        nepali = input("nepali: ")
+        if nepali=="===":
+            break
+        cnf = translator.translate(nepali)
+        #print("original cnf : {}".format(cnf))
+
+        # get separated sentence list using the cnf forms
+        separated = cnf_separator(cnf)
+
+        sentences = ng.generate_sentences_from_list(separated)
+        #print("possible synonym sentences : ")
+        #for sentence in sentences:
+        #    print(sentence)
+        best = ng.generate_sentence_best(sentences)
+        print("Translated : ", ' '.join(best))
+
+    print("exiting...")
+
 
 def main():
     start = time.time()
@@ -24,27 +48,26 @@ def main():
     ''' translator object : i dont have verbs_tense.json '''
     translator = RawTranslator("data/dictionary.db")
 
-    # main loop
-    num_sentences = int(input("how many sentences you will enter?(you may though exit by typing ===) : "))
-    for x in range(num_sentences):
+    while True:
         print("-"*80)
         nepali = input("nepali: ")
         if nepali=="===":
             break
         cnf = translator.translate(nepali)
-        print("original cnf : {}".format(cnf))
+        #print("original cnf : {}".format(cnf))
 
         # get separated sentence list using the cnf forms
         separated = cnf_separator(cnf)
 
         sentences = ng.generate_sentences_from_list(separated)
-        print("possible synonym sentences : ")
-        for sentence in sentences:
-            print(sentence)
+        #print("possible synonym sentences : ")
+        #for sentence in sentences:
+        #    print(sentence)
         best = ng.generate_sentence_best(sentences)
-        print("best : ", best)
+        print("Translated : ", ' '.join(best))
 
     print("exiting...")
+
     ng.close_ngramdb()
 
 def test_dict():
@@ -62,5 +85,10 @@ def test_dict():
         print(e)
 
 if __name__=="__main__":
-    main()
-    #test_dict()
+    args = sys.argv[1]
+    if args=="train":
+        test_dict()
+    elif args=="translate":
+        main()
+    else:
+        print("Usage: suported arguments are 'train' and 'translate'")

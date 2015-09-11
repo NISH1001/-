@@ -91,7 +91,7 @@ class Ngram(object):
         prob = 1
         for i in range( len(seq) - (n-1) ):
             tup = tuple( [ seq[i+j] for j in range(n) ] )
-            print(tup)
+            #print(tup)
             prob *= self.probability( (seq[i], seq[i+1], seq[i+2]) )
         return prob
     
