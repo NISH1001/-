@@ -134,14 +134,14 @@ class Ngram(object):
             index_row = index_col
         return tuple(res)
 
-    # our flooder -> overlapping tuple processer
-    def __flooder(self, seq, start_with, trie):
-        flood_list = [start_with]
+    # our overlapper -> overlapping tuple processer
+    def __overlapper(self, seq, start_with, trie):
+        overlap_list = [start_with]
         closed_set = set(start_with)
 
         for i in range(1,len(seq)-2):
-            # get previous tuple in the flood list
-            prev_key = flood_list[i-1]
+            # get previous tuple in the overlap list
+            prev_key = overlap_list[i-1]
             # our next best tuple
             next_tuple = None
             # for getting best probability shit :D
@@ -152,7 +152,7 @@ class Ngram(object):
             temp_dict = trie.copy()
             for key in temp_dict:
 
-                # if current key/tuple begins with the words previous tuple in our flood_list has
+                # if current key/tuple begins with the words previous tuple in our overlap_list has
                 if (key[0], key[1],) == (prev_key[1], prev_key[2],) and key[2] not in closed_set:
                     if trie[key] > prev_prob:
                         prev_prob, next_tuple = trie[key], key
@@ -163,9 +163,9 @@ class Ngram(object):
                 # update our closed set
                 closed_set.update(next_tuple)
                 # update our flood list
-                flood_list.append(next_tuple)
+                overlap_list.append(next_tuple)
 
-        return flood_list
+        return overlap_list
 
     def generate_sentence2(self, seq):
         n = len(seq)
@@ -196,12 +196,12 @@ class Ngram(object):
         if not start_with:
             return seq
 
-        # use our flooder (overlapping technique)
-        flood_list = self.__flooder(seq, start_with, trie)
+        # use our overlapper (overlapping technique)
+        overlap_list = self.__overlapper(seq, start_with, trie)
 
         final = list(start_with)
-        for i in range(1,len(flood_list)):
-            tup = flood_list[i]
+        for i in range(1,len(overlap_list)):
+            tup = overlap_list[i]
             final.append(tup[2])
 
         return tuple(final)
