@@ -15,6 +15,8 @@ class DictionaryDBHandler(object):
         self.database.close()
 
     def get_english(self, nepali):
+        res1 = set(self.get_english1(nepali))
+
         cursor = self.database.cursor()
         result_tuples = cursor.execute("""
                 SELECT English FROM Dictionary 
@@ -23,7 +25,7 @@ class DictionaryDBHandler(object):
         result = [x[0].lower().strip() for x in result_tuples]
 
         result = set(result)
-        res1 = set(self.get_english1(nepali))
+
         return list(result.union(res1))
 
     # here we insert nepali word and its equivalent english words

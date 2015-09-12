@@ -11,10 +11,12 @@ class UtilityError(Exception):
 
 
 class Utility(object):
+    verb_tenses = json.loads(open("data/verb_tenses.json").read())
     def __init__(self):
         verbs = open("data/verb_tenses.json", 'r')
         verbs = verbs.read()
         self.verb_tenses = json.loads(verbs)
+        verb_tenses = self.verb_tenses#this needed to be accessed by raw_translator, so made static
 
         nepeng = open("data/nepeng.json", "r")
         nepeng = nepeng.read()
@@ -98,17 +100,20 @@ class Utility(object):
 
 
     def get_eng_verb(self, nepali_root):
+        #print('get_eng_verb', nepali_root, type(nepali_root))
         possibles = []
         if re.search('(\S+)नु$', nepali_root):
             possibles = [nepali_root]
         elif re.search('(\S+)उ$', nepali_root):
-            possibles = [nepali_root+'नु']
+            possibles = [nepali_root+'नु', re.search('(\S+)उ$', nepali_root).group(1)+'नु']
         elif re.search('(\S+)र्$', nepali_root):
             possibles = [nepali_root+'नु']
         elif re.search('(\S+)र$', nepali_root):
             possibles = [nepali_root+'्नु']
         else:
-            possibles = [nepali_root+'नु', nepali_root+'उनु']
+            possibles = [nepali_root +'्नु',nepali_root+'नु', nepali_root+'उनु']
+        #print('possibles',possibles)
+        possibles.append(nepali_root)
         return self.get_from_dict(possibles)
     
     def get_from_dict(self, possibles):
@@ -116,3 +121,7 @@ class Utility(object):
             if self.nep_eng.get(x, '') != '':
                 return self.nep_eng[x]
         return None
+
+if __name__=='__main__':
+    ut = Utility()
+    print(get_eng_verb('गर'))
