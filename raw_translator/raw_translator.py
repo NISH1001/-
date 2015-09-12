@@ -35,7 +35,7 @@ class RawTranslator(object):
         self.suffices = json.loads(suffices.read())
 
         self.utility = Utility()
-            
+
     
     def translate(self, nepali_text):
         #try:
@@ -65,11 +65,11 @@ class RawTranslator(object):
 
                     if len(eng_meanings) == 0:
                         # process for हरु, मा, बाट, ले, and so on
-                        print('in process suffix:')
+                        #print('in process suffix:')
                         temp = self.process_suffix(x)
                         if temp.strip()=='':
                             temp = self.further_process(x)
-                        #print('processed :', type(temp))
+                        #print('processed :', type(temp), temp)
                         eng_words.append(temp)
 
                     else:
@@ -216,6 +216,22 @@ class RawTranslator(object):
     def further_process(self, nepali_string):
         print('in further process')
         # here, check for various possible structures of words 
+        neg = ''
+
+        # first check for imperative ones
+        new = nepali_string
+
+        new = re.sub('(होस्)$','',nepali_string)
+        new = re.sub('(स्)$','', new)
+        new = re.sub('(ऊ)$', 'उ', new) # like khau, jau, which have dirgha wookar
+        if re.match('^न', new):
+            neg = 'do not'
+            new = re.sub('^न', '', new)
+        #new = re.sub('(ू)$', 'ु', new) # like khau, jau, which have dirgha wookar
+
+        r = self.utility.get_eng_verb(new)
+        if r is not None and r is not '':
+            return neg+' '+r
 
         # do search in non simple tenses
         for non_simple_tense in self.tense_structures["NonSimple"]:
@@ -229,8 +245,6 @@ class RawTranslator(object):
                             if root_verb is not None:
                                 return Utility.verb_tenses[root_verb][non_simple_tense]
                                 #return self.utility.get_tense(root_verb, simple_tense, non_simple_tense, negative=neg, singular='s' in structure_tags) 
-        # now check for forms like herda, herera, Khada, Khayera, etc.
-        #result = re.search('
 
 
     
@@ -240,7 +254,7 @@ def main():
     while(n!='==='):
         print(translator.translate(n))
         n = input('enter nepali sentence ')
-    print("end")
+    print("bye bye")
 
 
 if __name__=='__main__':
