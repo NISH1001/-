@@ -21,7 +21,8 @@ class NgramMem(object):
         self.trigrams = OrderedDict()
         self.quadgrams = OrderedDict()
         self.data_path = data_path
-        self.aggregate_sum = [0, 286758206,128125547, 46030908]
+        #self.aggregate_sum = [0, 286758206,128125547, 46030908]
+        self.aggregate_sum = [0, 0, 0, 0]
 
     # load all the ngrams dict from text files
     def load_all(self, pickle=True):
@@ -29,10 +30,16 @@ class NgramMem(object):
             self.load_bigrams(file_ngrams=self.data_path+"2grams.txt")
             self.load_trigrams(file_ngrams=self.data_path+"3grams.txt")
             #self.load_quadgrams(file_ngrams=self.data_path+"4grams.txt")
+            self.generate_unigrams()
         else:
+            self.load_ngrams_pickle(pickle_file=self.data_path+"1grams.ng", n=1)
             self.load_ngrams_pickle(pickle_file=self.data_path+"2grams.ng", n=2)
             self.load_ngrams_pickle(pickle_file=self.data_path+"3grams.ng", n=3)
             #self.load_ngrams_pickle(pickle_file=self.data_path+"4grams.ng", n=4)
+        self.aggregate_sum[0] = sum(self.unigrams.values())
+        self.aggregate_sum[1] = sum(self.bigrams.values())
+        self.aggregate_sum[2] = sum(self.trigrams.values())
+        print("everything has been loaded... :D ")
 
     # load the bigrams from the desired file
     def load_bigrams(self, file_ngrams = "../data/ngrams/2grams.txt"):
@@ -41,7 +48,7 @@ class NgramMem(object):
             print("loading bigrams... from {}".format(file_ngrams))
             for line in f:
                 splitted = line.split()
-                self.bigrams[ (splitted[1], splitted[2]) ] = splitted[0]
+                self.bigrams[ (splitted[1], splitted[2]) ] = int(splitted[0])
         print("bigrams loaded successfully... :P")
 
     # load the trigrams
@@ -51,7 +58,7 @@ class NgramMem(object):
             print("loading trigrams... from {}".format(file_ngrams))
             for line in f:
                 splitted = line.split()
-                self.trigrams[ (splitted[1], splitted[2], splitted[3]) ] = splitted[0]
+                self.trigrams[ (splitted[1], splitted[2], splitted[3]) ] = int(splitted[0])
         print("trigrams loaded successfully... :P")
 
     # load the quadgrams
@@ -61,7 +68,7 @@ class NgramMem(object):
             print("loading quadgrams... from {}".format(file_ngrams))
             for line in f:
                 splitted = line.split()
-                self.quadgrams[ (splitted[1], splitted[2], splitted[3], splitted[4]) ] = splitted[0]
+                self.quadgrams[ (splitted[1], splitted[2], splitted[3], splitted[4]) ] = int(splitted[0])
         print("quadgrams loaded successfully... :P")
 
     def insert_into_db(self):
@@ -100,8 +107,10 @@ class NgramMem(object):
     # general ngrams loader from pickle file
     def load_ngrams_pickle(self, pickle_file = "../data/ngrams/2grams.ng", n=2):
         print("loading pickle... {}grams".format(n))
-        if n<2:
+        if n<1:
             return False
+        elif n==1:
+            self.unigrams= pickle.load( open(pickle_file, 'rb') )
         elif n==2:
             self.bigrams = pickle.load( open(pickle_file, 'rb') )
         elif n==3:
@@ -113,8 +122,10 @@ class NgramMem(object):
     # general ngrams saver to a pickle file
     def save_ngrams_pickle(self, pickle_file = "../data/ngrams/2grams.ng", n=2):
         print("saving into pickle...")
-        if n<2:
+        if n<1:
             return False
+        elif n==1:
+            pickle.dump(self.unigrams, open(pickle_file, "wb"))
         elif n==2:
             pickle.dump(self.bigrams, open(pickle_file, "wb"))
         elif n==3:
@@ -123,6 +134,18 @@ class NgramMem(object):
             pickle.dump(self.quadgrams, open(pickle_file, "wb"))
         print("saved pickle...")
 
+    def generate_unigrams(self):
+        print("generating unigrams from trigrams...")
+        for key in self.trigrams:
+            try:
+                if self.unigrams[ (key[2],) ]:
+                    self.unigrams[ (key[2],) ] += self.trigrams[key]
+            except KeyError:
+                self.unigrams[ (key[2],) ] = self.trigrams[key]
+
+        print("saving unigram into pickle...")
+        self.save_ngrams_pickle(pickle_file="../data/ngrams/1grams.ng", n=1)
+
     def count(self, seq, total=False):
         n = len(seq)
         ret = None
@@ -130,7 +153,9 @@ class NgramMem(object):
             ret = self.aggregate_sum[n-1]
         else:
             try:
-                if n==2:
+                if n==1:
+                    ret = self.unigrams[seq]
+                elif n==2:
                     ret = self.bigrams[seq]
                 elif n==3:
                     ret = self.trigrams[seq]
@@ -140,10 +165,12 @@ class NgramMem(object):
                     ret = 0
             except KeyError:
                 ret = 0
-        return int(ret)
+        return ret
 
     def count_vocab(self, n=2):
-        if n==2:
+        if n==1:
+            return len(self.unigrams)
+        elif n==2:
             return len(self.bigrams)
         elif n==3:
             return len(self.trigrams)
@@ -156,6 +183,15 @@ def main():
     ngrammem = NgramMem()
     start = time.time()
     ngrammem.load_all(pickle=True)
+
+    '''
+    #if you dont have the pickle, uncomment this section to generate the pickles
+    ngrammem.load_bigrams()
+    ngrammem.load_trigrams()
+    ngrammem.generate_unigrams()
+    ngrammem.save_ngrams_pickle(pickle_file = "../data/ngrams/2grams.ng", n=2)
+    ngrammem.save_ngrams_pickle(pickle_file = "../data/ngrams/3grams.ng", n=3)
+    '''
     print(time.time()-start)
 
     # just a ngram tester
@@ -165,9 +201,8 @@ def main():
             continue
         if seq=="exit":
             break
-        seq = seq.split()
-        seq = tuple(seq)
-        print(ngrammem.probability(seq))
+        seq = tuple(seq.split())
+        print(ngrammem.count(seq))
 
 
 if __name__=="__main__":

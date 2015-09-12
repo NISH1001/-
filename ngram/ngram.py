@@ -69,7 +69,7 @@ class Ngram(object):
         count = self.count(seq, total=False)
 
         # get lower ngram tuple
-        lower = tuple( [ seq[i] for i in range(length-1) ] )
+        lower = tuple( seq[0:length-1] )
 
         # total is the count of that lower ngram
         count_lower = self.count(lower, total=False)
@@ -88,11 +88,14 @@ class Ngram(object):
             calculates the probability of given sentence
             using markov chain
         """
+
+        if len(seq) < n:
+            n = 2
+        
         prob = 1
         for i in range( len(seq) - (n-1) ):
-            tup = tuple( [ seq[i+j] for j in range(n) ] )
-            #print(tup)
-            prob *= self.probability( (seq[i], seq[i+1], seq[i+2]) )
+            tup = tuple( seq[i:i+n] )
+            prob *= self.probability(tup)
         return prob
     
     """ private function: create our 2d table with probability using list comprehension"""
