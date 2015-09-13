@@ -14,28 +14,6 @@ from ngram import ngram
 from raw_translator import raw_translator as RT
 from utilities import cnf_separator
 
-def get_input():
-    # main loop
-    while True:
-        print("-"*80)
-        nepali = input("nepali: ")
-        if nepali=="===":
-            break
-        cnf = translator.translate(nepali)
-        #print("original cnf : {}".format(cnf))
-
-        # get separated sentence list using the cnf forms
-        separated = cnf_separator(cnf)
-
-        sentences = ng.generate_sentences_from_list(separated)
-        #print("possible synonym sentences : ")
-        #for sentence in sentences:
-        #    print(sentence)
-        best = ng.generate_sentence_best(sentences)
-        print("Translated : ", ' '.join(best))
-
-    print("exiting...")
-
 
 def main():
     start = time.time()
@@ -53,18 +31,23 @@ def main():
         nepali = input("nepali: ")
         if nepali=="===":
             break
-        cnf = translator.translate(nepali)
-        #print("original cnf : {}".format(cnf))
+        try:
+            cnf = translator.translate(nepali)
+            #print("original cnf : {}".format(cnf))
 
-        # get separated sentence list using the cnf forms
-        separated = cnf_separator(cnf)
+            # get separated sentence list using the cnf forms
+            separated = cnf_separator(cnf)
 
-        sentences = ng.generate_sentences_from_list(separated)
-        #print("possible synonym sentences : ")
-        #for sentence in sentences:
-        #    print(sentence)
-        best = ng.generate_sentence_best(sentences)
-        print("Translated : ", ' '.join(best))
+            sentences = ng.generate_sentences_from_list(separated)
+            #print("possible synonym sentences : ")
+            #for sentence in sentences:
+            #    print(sentence)
+            best = ng.generate_sentence_best(sentences)
+            print("Translated : ", ' '.join(best))
+        except Exception as e:
+            #print(repr(e))
+            print('can\'t translate.. Try other')
+            continue
 
     print("exiting...")
 

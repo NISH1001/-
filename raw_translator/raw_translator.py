@@ -10,11 +10,6 @@ class RawTranslatorError(Exception):
     def Display(self):
         print("RawTranslatorError: " + ''.join(self.args))
 
-'''
-what remain:
--singular/plural
--imperative forms
-'''
 
 """
 RawTranslator class:
@@ -24,14 +19,7 @@ RawTranslator class:
     idioms translation database
 --  Needs to access the list of all the verb forms in nepali languages
     and 'nipaats' and some other parts of nepali sentences
-
-attributes:
-    ...
-
-methods:
-    ...
 """
-
    
 
 class RawTranslator(object):
@@ -47,7 +35,7 @@ class RawTranslator(object):
         self.suffices = json.loads(suffices.read())
 
         self.utility = Utility()
-            
+
     
     def translate(self, nepali_text):
         #try:
@@ -77,18 +65,18 @@ class RawTranslator(object):
 
                     if len(eng_meanings) == 0:
                         # process for हरु, मा, बाट, ले, and so on
-                        eng_words.append(self.process_suffix(x))
+                        #print('in process suffix:')
+                        temp = self.process_suffix(x)
+                        if temp.strip()=='':
+                            temp = self.further_process(x)
+                        #print('processed :', type(temp), temp)
+                        eng_words.append(temp)
 
                     else:
                         eng_word = '^^'.join(list(
                                 map(lambda a: a.lower(), eng_meanings)
                                 )
                             ) # CNF separated by ^^
-
-                        '''
-                        if eng_word=='': # which is the case when no meaning found in dict
-                            eng_word==get_action(x) # checks unigram
-                        '''
 
                         eng_words.append(eng_word)
                 else:
@@ -108,7 +96,6 @@ class RawTranslator(object):
                 struc_process = re.match('([^a-z]+)([a-z]*)', structure)
                 structure_tags = struc_process.group(2)
                 actual_str = struc_process.group(1)
-                #actual_str = structure
 
                 # Check if the phrase's last part matches fully with the structure
                 # If so it is not only simple, check remaining first part too
@@ -130,7 +117,7 @@ class RawTranslator(object):
                             non_simple_result = re.search('(\S+)'+each+'$', remaining_part)
                             if non_simple_result is not None: 
 
-                                print("bibek", non_simple_tense, each, non_simple_result.group(1))
+                                #print("bibek", non_simple_tense, each, non_simple_result.group(1))
                                 # Here, we have the verb root in non_simple_root, so extract verb
                                 root_verb = self.utility.get_eng_verb(non_simple_result.group(1))
                                 if not root_verb is None:
@@ -159,7 +146,7 @@ class RawTranslator(object):
                 simple_result = re.search('(.+)'+actual_str+'$', nepali_phrase)
                 #print(nepali_phrase, structure, structure in nepali_phrase)
                 if simple_result is not None:
-                    #print('match simple')
+                    #print('match_simple')
 
                     if 'n' in structure_tags:
                         neg=True
@@ -167,9 +154,9 @@ class RawTranslator(object):
                     # check for two possibilities: single word nep_verb
                     #                              double word nep_verb
                     nep_verb_part = simple_result.group(1)
-                    #print('**'+ nep_verb_part+'**')
                     if nep_verb_part=='':continue
                     root_verb = self.utility.get_eng_verb(simple_result.group(1)) # double_word
+                    #print('root_verb: ', root_verb)
                     if root_verb is not None:
                         return self.utility.get_tense(root_verb, simple_tense, negative=neg, singular='s' in structure_tags) 
                         # return the correct tense of the verb
@@ -178,12 +165,12 @@ class RawTranslator(object):
                         if root_verb is not None:
                             return nepali_phrase.split()[0]+ ' '+self.utility.get_tense(root_verb, simple_tense, negative=neg, singular='s' in structure_tags)
                         else:
+                            return nepali_phrase#since no verb found, return as it is for other words may match it
                             raise RawTranslatorError('No verb found for  '+ nepali_phrase)
         return None
 
 
     def process_suffix(self, nepali_word):
-
         words = None
         suffx_meanings = None
 
@@ -226,6 +213,40 @@ class RawTranslator(object):
             return '^^'.join(words)
         else: return ''
 
+    def further_process(self, nepali_string):
+        #print('in further process')
+        # here, check for various possible structures of words 
+        neg = ''
+
+        # first check for imperative ones
+        new = nepali_string
+
+        new = re.sub('(होस्)$','',nepali_string)
+        new = re.sub('(स्)$','', new)
+        new = re.sub('(ऊ)$', 'उ', new) # like khau, jau, which have dirgha wookar
+        if re.match('^न', new):
+            neg = 'do not'
+            new = re.sub('^न', '', new)
+        #new = re.sub('(ू)$', 'ु', new) # like khau, jau, which have dirgha wookar
+
+        r = self.utility.get_eng_verb(new)
+        if r is not None and r is not '':
+            return neg+' '+r
+
+        # do search in non simple tenses
+        for non_simple_tense in self.tense_structures["NonSimple"]:
+            # Here, full part won't match, so check partial
+            for each in self.tense_structures["NonSimple"][non_simple_tense]:
+                non_simple_result = re.search('(\S+)'+each+'$', nepali_string)
+
+                if non_simple_result is not None: 
+                        # Here, we have the verb root in non_simple_root, so extract verb
+                            root_verb = self.utility.get_eng_verb(non_simple_result.group(1))
+                            if root_verb is not None:
+                                return Utility.verb_tenses[root_verb][non_simple_tense]
+                                #return self.utility.get_tense(root_verb, simple_tense, non_simple_tense, negative=neg, singular='s' in structure_tags) 
+
+
     
 def main():
     translator = RawTranslator("data/dictionary.db")
@@ -233,7 +254,7 @@ def main():
     while(n!='==='):
         print(translator.translate(n))
         n = input('enter nepali sentence ')
-    print("end")
+    print("bye bye")
 
 
 if __name__=='__main__':
